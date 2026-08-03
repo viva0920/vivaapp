@@ -2104,6 +2104,60 @@
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet">' + svg + '</svg>';
   }
 
+  function drawBpMonthChart(allRecs) {
+    bpNorm();
+    const map = {};
+    allRecs.forEach((r) => {
+      const ym = (r.dt || "").slice(0, 7);
+      if (!ym || ym.length < 7) return;
+      if (!map[ym]) map[ym] = { sbp: [], dbp: [], hr: [] };
+      map[ym].sbp.push(r.sbp);
+      map[ym].dbp.push(r.dbp);
+      if (typeof r.hr === "number" && !isNaN(r.hr)) map[ym].hr.push(r.hr);
+    });
+    const months = Object.keys(map).sort();
+    if (!months.length) return "";
+    const data = months.map((ym) => {
+      const m = map[ym];
+      const avg = (a) => Math.round(a.reduce((s, x) => s + x, 0) / a.length);
+      return { ym: ym, sbp: avg(m.sbp), dbp: avg(m.dbp), hr: m.hr.length ? avg(m.hr) : null };
+    });
+    const show = data.slice(-12);
+    const n = show.length;
+    if (!n) return "";
+    const W = 320, H = 200, padL = 34, padR = 12, padT = 16, padB = 30;
+    const all = show.map((d) => d.sbp).concat(show.map((d) => d.dbp));
+    let min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+    if (min === max) { min -= 6; max += 6; }
+    const span = max - min; min -= span * 0.15; max += span * 0.15;
+    const x = (i) => padL + (n === 1 ? (W - padL - padR) / 2 : (i * (W - padL - padR)) / (n - 1));
+    const y = (v) => padT + (1 - (v - min) / (max - min)) * (H - padT - padB);
+    let svg = "";
+    for (let g = 0; g <= 3; g++) {
+      const gy = padT + (g * (H - padT - padB)) / 3;
+      const val = max - (g * (max - min)) / 3;
+      svg += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="#ffe1ec" stroke-width="1"/>';
+      svg += '<text x="' + (padL - 3) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#a08a98">' + Math.round(val) + '</text>';
+    }
+    const line = (key, color) => {
+      let s = '<polyline points="';
+      s += show.map((d, i) => x(i) + "," + y(d[key])).join(" ");
+      s += '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      show.forEach((d, i) => { s += '<circle cx="' + x(i) + '" cy="' + y(d[key]) + '" r="3" fill="#fff" stroke="' + color + '" stroke-width="2"/>'; });
+      return s;
+    };
+    svg += line("dbp", "#54a0ff");
+    svg += line("sbp", "#ff6f91");
+    const step = Math.max(1, Math.ceil(n / 6));
+    show.forEach((d, i) => {
+      if (i % step === 0 || i === n - 1)
+        svg += '<text x="' + x(i) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="9" fill="#a08a98">' + d.ym.slice(2) + '</text>';
+    });
+    svg += '<rect x="' + padL + '" y="' + (H - 1) + '" width="10" height="3" fill="#ff6f91"/><text x="' + (padL + 14) + '" y="' + (H + 1) + '" font-size="9" fill="#a08a98">高压</text>';
+    svg += '<rect x="' + (padL + 52) + '" y="' + (H - 1) + '" width="10" height="3" fill="#54a0ff"/><text x="' + (padL + 66) + '" y="' + (H + 1) + '" font-size="9" fill="#a08a98">低压</text>';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet">' + svg + '</svg>';
+  }
+
   let bpRemTimers = [];
   function scheduleBpReminders() {
     bpRemTimers.forEach((t) => clearTimeout(t));
@@ -2159,6 +2213,7 @@
       : '<div class="bp-stat"><span>暂无数据</span><b>—</b></div>';
 
     $("#bpChart").innerHTML = recs.length >= 2 ? drawBpChart(recs) : "";
+    $("#bpMonthChart").innerHTML = drawBpMonthChart(state.bp.records.slice());
 
     if (!recs.length) { list.innerHTML = ""; empty.style.display = "block"; }
     else {

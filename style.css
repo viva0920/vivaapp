@@ -564,6 +564,7 @@ body {
   .bp-stat b { font-size: 14px; color: var(--ink); }
   .bp-stat b i { font-style: normal; font-size: 11px; color: var(--ink-soft); }
   .bp-chart { background: #fff7fb; border: 1px solid #ffe1ec; border-radius: 14px; padding: 10px; margin-bottom: 12px; }
+  .bp-chart-title { font-size: 13px; font-weight: 800; color: var(--pink-deep); margin-bottom: 8px; }
   .bp-list { display: flex; flex-direction: column; gap: 8px; }
   .bp-item { display: flex; align-items: flex-start; gap: 8px; background: #fff7fb; border: 1px solid #ffe1ec; border-left: 6px solid #7ec8a0; border-radius: 14px; padding: 10px 12px; }
   .bp-item.bp-lv-border { border-left-color: #f5a623; background: #fffaf0; }
