@@ -367,23 +367,53 @@
           <div class="cover-book">
             <div class="cover-ribbon">手账 · Journal</div>
             <svg class="cover-cat" viewBox="0 0 140 140" aria-hidden="true">
-              <ellipse cx="70" cy="120" rx="46" ry="11" fill="#ffe3ee"/>
-              <path d="M40,108 C32,84 36,54 58,46 C72,40 86,46 96,60 C104,74 104,94 98,108 C92,118 82,120 70,120 C54,120 46,116 40,108 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3"/>
-              <path d="M58,46 C60,54 54,60 50,62 M82,46 C80,54 86,60 90,62" fill="none" stroke="#8a7f9a" stroke-width="2.6" stroke-linecap="round"/>
-              <path d="M40,48 C32,24 52,36 56,46 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3" stroke-linejoin="round"/>
-              <path d="M100,48 C108,24 88,36 84,46 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3" stroke-linejoin="round"/>
-              <path d="M42,46 C40,34 48,40 50,44 Z M98,46 C100,34 92,40 90,44 Z" fill="#ffd9ea"/>
-              <circle cx="54" cy="72" r="8" fill="#8a7f9a"/>
-              <circle cx="56" cy="69" r="3" fill="#fff"/>
-              <circle cx="86" cy="72" r="8" fill="#8a7f9a"/>
-              <circle cx="88" cy="69" r="3" fill="#fff"/>
-              <ellipse cx="44" cy="82" rx="6" ry="3.6" fill="#ffc2dd"/>
-              <ellipse cx="96" cy="82" rx="6" ry="3.6" fill="#ffc2dd"/>
-              <path d="M67,78 L73,78 L70,83 Z" fill="#ff9ec4"/>
-              <path d="M70,83 C65,90 60,85 60,82 M70,83 C75,90 80,85 80,82" fill="none" stroke="#8a7f9a" stroke-width="2.2" stroke-linecap="round"/>
-              <path d="M40,76 L26,74 M40,80 L26,82 M100,76 L114,74 M100,80 L114,82" fill="none" stroke="#8a7f9a" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/>
-              <ellipse cx="56" cy="110" rx="7" ry="4.5" fill="#fff" stroke="#8a7f9a" stroke-width="2.6"/>
-              <ellipse cx="84" cy="110" rx="7" ry="4.5" fill="#fff" stroke="#8a7f9a" stroke-width="2.6"/>
+              <!-- 坐垫 -->
+              <ellipse cx="70" cy="116" rx="54" ry="12" fill="#d8eefc" stroke="#a36a45" stroke-width="2.8"/>
+              <path d="M22,116 Q70,124 118,116" fill="none" stroke="#a36a45" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/>
+              <!-- 尾巴 -->
+              <path d="M100,92 C118,84 126,100 118,112 C112,120 100,114 98,108" fill="#ffe8b8" stroke="#a36a45" stroke-width="3" stroke-linecap="round"/>
+              <!-- 身体 -->
+              <ellipse cx="70" cy="92" rx="34" ry="30" fill="#fff6dc" stroke="#a36a45" stroke-width="3"/>
+              <ellipse cx="70" cy="92" rx="34" ry="30" fill="url(#catGrad)" stroke="none"/>
+              <defs>
+                <radialGradient id="catGrad" cx="40%" cy="30%" r="70%">
+                  <stop offset="0%" stop-color="#fff6dc"/>
+                  <stop offset="100%" stop-color="#ffe0a3"/>
+                </radialGradient>
+              </defs>
+              <!-- 斑点 -->
+              <ellipse cx="54" cy="86" rx="5" ry="4" fill="#ffcc8a" opacity="0.8"/>
+              <ellipse cx="86" cy="78" rx="6" ry="5" fill="#ffcc8a" opacity="0.8"/>
+              <ellipse cx="88" cy="100" rx="4" ry="3" fill="#ffcc8a" opacity="0.7"/>
+              <!-- 前爪 -->
+              <ellipse cx="58" cy="114" rx="6" ry="4.5" fill="#fff6dc" stroke="#a36a45" stroke-width="2.6"/>
+              <ellipse cx="82" cy="114" rx="6" ry="4.5" fill="#fff6dc" stroke="#a36a45" stroke-width="2.6"/>
+              <path d="M56,113 L56,117 M60,113 L60,117" fill="none" stroke="#a36a45" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M80,113 L80,117 M84,113 L84,117" fill="none" stroke="#a36a45" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- 头部 -->
+              <circle cx="70" cy="56" r="34" fill="#fff6dc" stroke="#a36a45" stroke-width="3"/>
+              <circle cx="70" cy="56" r="34" fill="url(#catGrad)" stroke="none"/>
+              <!-- 额头条纹 -->
+              <path d="M64,34 Q70,38 76,34" fill="none" stroke="#eebb7a" stroke-width="3" stroke-linecap="round"/>
+              <path d="M66,42 Q70,46 74,42" fill="none" stroke="#eebb7a" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- 耳朵 -->
+              <path d="M40,44 C30,22 46,30 52,40 Z" fill="#fff6dc" stroke="#a36a45" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M100,44 C110,22 94,30 88,40 Z" fill="#fff6dc" stroke="#a36a45" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M42,38 C38,28 46,32 48,38 Z" fill="#ffd9ea" stroke="none"/>
+              <path d="M98,38 C102,28 94,32 92,38 Z" fill="#ffd9ea" stroke="none"/>
+              <!-- 眼睛 -->
+              <circle cx="56" cy="56" r="7" fill="#6b4c35"/>
+              <circle cx="58" cy="53" r="2.6" fill="#fff"/>
+              <circle cx="84" cy="56" r="7" fill="#6b4c35"/>
+              <circle cx="86" cy="53" r="2.6" fill="#fff"/>
+              <!-- 腮红 -->
+              <ellipse cx="46" cy="66" rx="6" ry="3.5" fill="#ffc2dd" opacity="0.7"/>
+              <ellipse cx="94" cy="66" rx="6" ry="3.5" fill="#ffc2dd" opacity="0.7"/>
+              <!-- 鼻子嘴巴 -->
+              <path d="M67,64 L73,64 L70,68 Z" fill="#ff9ec4"/>
+              <path d="M70,68 C65,74 60,70 60,67 M70,68 C75,74 80,70 80,67" fill="none" stroke="#a36a45" stroke-width="2" stroke-linecap="round"/>
+              <!-- 胡须 -->
+              <path d="M42,60 L28,58 M42,64 L28,64 M98,60 L112,58 M98,64 L112,64" fill="none" stroke="#a36a45" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
             </svg>
             <div class="cover-title">我的手账本</div>
             <div class="cover-sub">日系手绘 · 治愈日常</div>
