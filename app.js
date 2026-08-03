@@ -112,6 +112,7 @@
       $$(".nav-item").forEach((b) => b.classList.toggle("active", b === btn));
       $$(".module").forEach((sec) => sec.classList.toggle("active", sec.id === "module-" + m));
       try { store.set("wb_last_module", m); } catch (e) {}
+      if (m === "daily") { try { showDailyScreen("cover"); } catch (e) {} }
     });
   });
 
@@ -126,6 +127,7 @@
     if (m) {
       $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.module === m));
       $$(".module").forEach((sec) => sec.classList.toggle("active", sec.id === "module-" + m));
+      if (m === "daily") { try { showDailyScreen("cover"); } catch (e) {} }
     }
   })();
 
@@ -2795,43 +2797,229 @@
   });
 
   /* =========================================================
-     日常模块
+     日常手账本模块（日系手绘风）
      ========================================================= */
-  const DAILY_CAT_SVG = '<svg class="daily-card-cat" viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="42" ry="10" fill="#fff0f6" stroke="#7a6f8a" stroke-width="2.5"/><path d="M88,82 Q104,70 104,88 Q104,100 92,98" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/><path d="M36,94 C30,72 34,48 52,40 C64,34 78,38 86,50 C92,62 92,80 88,94 C84,102 76,104 60,104 C44,104 38,100 36,94 Z" fill="#fff" stroke="#7a6f8a" stroke-width="3"/><path d="M48,40 C50,46 46,52 42,54 M72,40 C70,46 74,52 78,54" fill="none" stroke="#7a6f8a" stroke-width="2.5" stroke-linecap="round"/><path d="M34,46 C28,24 44,34 48,42 Z" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/><path d="M86,46 C92,24 76,34 72,42 Z" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/><path d="M36,44 C34,32 42,38 44,42 Z M84,44 C86,32 78,38 76,42 Z" fill="#ffd9ea" stroke="none"/><circle cx="46" cy="64" r="7" fill="#7a6f8a"/><circle cx="48" cy="62" r="2.8" fill="#fff"/><circle cx="74" cy="64" r="7" fill="#7a6f8a"/><circle cx="76" cy="62" r="2.8" fill="#fff"/><ellipse cx="38" cy="72" rx="5" ry="3.2" fill="#ffd9ea"/><ellipse cx="82" cy="72" rx="5" ry="3.2" fill="#ffd9ea"/><path d="M57,70 L63,70 L60,74 Z" fill="#ff9ec4"/><path d="M60,74 C56,80 52,76 52,74 M60,74 C64,80 68,76 68,74" fill="none" stroke="#7a6f8a" stroke-width="2" stroke-linecap="round"/><path d="M34,68 L22,66 M34,72 L22,74 M86,68 L98,66 M86,72 L98,74" fill="none" stroke="#7a6f8a" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/><ellipse cx="48" cy="96" rx="6" ry="4" fill="#fff" stroke="#7a6f8a" stroke-width="2.5"/><ellipse cx="72" cy="96" rx="6" ry="4" fill="#fff" stroke="#7a6f8a" stroke-width="2.5"/></svg>';
-  let dailyEditingId = null;
-  let dailyPendingImages = [];
+  const DAILY_MOODS = [
+    { key: "happy", label: "😊 开心", color: "#ffd6e7" },
+    { key: "calm", label: "🌿 平静", color: "#d6f0e0" },
+    { key: "tired", label: "😴 疲惫", color: "#ece3d6" },
+    { key: "energ", label: "💪 充实", color: "#d6e7ff" },
+    { key: "sad", label: "🌧️ 低落", color: "#e3e7f0" },
+    { key: "memo", label: "✨ 纪念", color: "#ffe9c2" },
+  ];
+  const STICKER_CAT = '<svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="40" ry="9" fill="#fff0f6"/><path d="M36,94 C30,72 34,48 52,40 C64,34 78,38 86,50 C92,62 92,80 88,94 C84,102 76,104 60,104 C44,104 38,100 36,94 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3"/><path d="M48,40 C50,46 46,52 42,54 M72,40 C70,46 74,52 78,54" fill="none" stroke="#8a7f9a" stroke-width="2.5" stroke-linecap="round"/><path d="M34,46 C28,24 44,34 48,42 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3" stroke-linejoin="round"/><path d="M86,46 C92,24 76,34 72,42 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3" stroke-linejoin="round"/><path d="M36,44 C34,32 42,38 44,42 Z M84,44 C86,32 78,38 76,42 Z" fill="#ffd9ea"/><circle cx="46" cy="64" r="7" fill="#8a7f9a"/><circle cx="48" cy="62" r="2.8" fill="#fff"/><circle cx="74" cy="64" r="7" fill="#8a7f9a"/><circle cx="76" cy="62" r="2.8" fill="#fff"/><ellipse cx="38" cy="72" rx="5" ry="3.2" fill="#ffc2dd"/><ellipse cx="82" cy="72" rx="5" ry="3.2" fill="#ffc2dd"/><path d="M57,70 L63,70 L60,74 Z" fill="#ff9ec4"/><path d="M60,74 C56,80 52,76 52,74 M60,74 C64,80 68,76 68,74" fill="none" stroke="#8a7f9a" stroke-width="2" stroke-linecap="round"/><ellipse cx="48" cy="96" rx="6" ry="4" fill="#fff" stroke="#8a7f9a" stroke-width="2.5"/><ellipse cx="72" cy="96" rx="6" ry="4" fill="#fff" stroke="#8a7f9a" stroke-width="2.5"/></svg>';
+  const STICKER_RABBIT = '<svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="40" ry="9" fill="#f3e8ff"/><path d="M48,40 Q40,4 52,8 Q60,16 56,42" fill="#fff" stroke="#9a8fb0" stroke-width="3" stroke-linejoin="round"/><path d="M72,40 Q80,4 68,8 Q60,16 64,42" fill="#fff" stroke="#9a8fb0" stroke-width="3" stroke-linejoin="round"/><path d="M50,40 Q46,16 53,12 M70,40 Q74,16 67,12" fill="#ffd9ea"/><path d="M36,92 C32,70 38,52 56,48 C74,44 88,56 88,76 C88,90 80,98 60,98 C44,98 38,96 36,92 Z" fill="#fff" stroke="#9a8fb0" stroke-width="3"/><circle cx="50" cy="68" r="6.5" fill="#9a8fb0"/><circle cx="52" cy="66" r="2.4" fill="#fff"/><circle cx="72" cy="68" r="6.5" fill="#9a8fb0"/><circle cx="74" cy="66" r="2.4" fill="#fff"/><ellipse cx="42" cy="76" rx="5" ry="3" fill="#ffc2dd"/><ellipse cx="80" cy="76" rx="5" ry="3" fill="#ffc2dd"/><path d="M57,74 L63,74 L60,78 Z" fill="#ff9ec4"/><path d="M60,78 C56,84 52,80 52,77 M60,78 C64,84 68,80 68,77" fill="none" stroke="#9a8fb0" stroke-width="2" stroke-linecap="round"/><ellipse cx="50" cy="92" rx="6" ry="4" fill="#fff" stroke="#9a8fb0" stroke-width="2.5"/><ellipse cx="72" cy="92" rx="6" ry="4" fill="#fff" stroke="#9a8fb0" stroke-width="2.5"/></svg>';
+  function stickerSvg(kind) { return kind === "rabbit" ? STICKER_RABBIT : kind === "cat" ? STICKER_CAT : ""; }
+
+  let dailyScreen = "cover";
+  let readerYm = monthStr();
+  let readerIdx = 0;
+  let editorId = null;
+  let editorPendingImages = [];
+  let editorSticker = "";
 
   function dailyNorm() {
     if (!state.daily || typeof state.daily !== "object") state.daily = {};
     if (!Array.isArray(state.daily.entries)) state.daily.entries = [];
-    if (!state.daily.bookMonth) state.daily.bookMonth = monthStr();
   }
-  function getDailyEntry(date) {
+  function dailyEntriesOfMonth(ym) {
     dailyNorm();
-    return state.daily.entries.find((e) => e.date === date) || null;
+    return state.daily.entries.filter((e) => (e.date || "").slice(0, 7) === ym)
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (a.time < b.time ? -1 : 1)));
   }
-  function renderDailyDateStrip() {
-    const strip = $("#dailyDateStrip");
-    if (!strip) return;
-    const today = todayStr();
-    const days = [];
-    for (let i = -6; i <= 0; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      days.push(d.toISOString().slice(0, 10));
-    }
-    const hasMap = {};
-    state.daily.entries.forEach((e) => { if (e.date) hasMap[e.date] = true; });
-    strip.innerHTML = days.map((d) => {
-      const dt = new Date(d + "T00:00:00");
-      const num = dt.getDate();
-      const active = d === today;
-      const has = !!hasMap[d];
-      return '<div class="daily-date-item' + (active ? " active" : "") + (has ? " has" : "") + '" data-date="' + d + '"><div class="daily-date-cat">🐱</div><div class="daily-date-num">' + num + '</div></div>';
-    }).join("");
-    $$(".daily-date-item", strip).forEach((el) => {
-      el.addEventListener("click", () => openDailyEdit(el.dataset.date));
+  function getDailyEntry(id) { dailyNorm(); return state.daily.entries.find((e) => e.id === id) || null; }
+  function defaultNewDate(ym) {
+    const t = todayStr();
+    return t.slice(0, 7) === ym ? t : ym + "-01";
+  }
+
+  function showDailyScreen(name) {
+    dailyScreen = name;
+    ["cover", "reader", "editor", "overview"].forEach((s) => {
+      const el = $("#daily" + s.charAt(0).toUpperCase() + s.slice(1));
+      if (el) el.classList.toggle("active", s === name);
     });
+    const fab = $("#dailyAddBtn");
+    if (fab) fab.classList.toggle("hidden", !(name === "cover" || name === "reader"));
+    if (name === "cover") renderCover();
+    else if (name === "reader") renderReader();
+    else if (name === "overview") renderOverview();
+  }
+
+  function renderCover() {
+    const ym = monthStr();
+    const cm = $("#coverMonth");
+    if (cm && !cm.value) cm.value = ym;
+    buildCoverCalendar(cm && cm.value ? cm.value : ym);
+  }
+  function buildCoverCalendar(ym) {
+    dailyNorm();
+    const cal = $("#coverCalendar");
+    if (!cal) return;
+    const parts = ym.split("-");
+    const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+    const first = new Date(y, m - 1, 1);
+    const startDow = first.getDay();
+    const days = new Date(y, m, 0).getDate();
+    const wd = ["日", "一", "二", "三", "四", "五", "六"];
+    let head = wd.map((w) => "<span>" + w + "</span>").join("");
+    let cells = "";
+    for (let i = 0; i < startDow; i++) cells += "<b></b>";
+    const today = todayStr();
+    for (let d = 1; d <= days; d++) {
+      const ds = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+      const cls = ds === today ? "today" : "has";
+      const has = state.daily.entries.some((e) => (e.date || "").slice(0, 7) === ym);
+      cells += '<b class="' + (ds === today ? "today" : (has ? "has" : "")) + '">' + d + "</b>";
+    }
+    cal.innerHTML = '<div class="cover-cal-head">' + y + '年' + m + '月</div><div class="cover-cal-grid">' + head + cells + '</div>';
+  }
+
+  function renderReader() {
+    const ym = readerYm;
+    const rm = $("#readerMonth");
+    if (rm && rm.value !== ym) rm.value = ym;
+    const entries = dailyEntriesOfMonth(ym);
+    const empty = $("#readerEmpty");
+    const book = $("#book");
+    const bottom = $(".reader-bottom");
+    const prog = $("#readerProgress");
+    if (!entries.length) {
+      if (empty) empty.style.display = "block";
+      if (book) book.style.display = "none";
+      if (bottom) bottom.style.display = "none";
+      if (prog) prog.textContent = "";
+      return;
+    }
+    if (empty) empty.style.display = "none";
+    if (book) book.style.display = "block";
+    if (bottom) bottom.style.display = "flex";
+    if (readerIdx >= entries.length) readerIdx = entries.length - 1;
+    if (readerIdx < 0) readerIdx = 0;
+    renderBookPage(readerIdx);
+    if (prog) prog.textContent = (readerIdx + 1) + " / " + entries.length;
+  }
+  function renderBookPage(i) {
+    const entries = dailyEntriesOfMonth(readerYm);
+    const e = entries[i];
+    const page = $("#bookPage");
+    if (!e || !page) return;
+    const dt = new Date(e.date + "T00:00:00");
+    const wd = ["日", "一", "二", "三", "四", "五", "六"][dt.getDay()];
+    const mood = DAILY_MOODS.find((x) => x.key === e.mood);
+    const sticker = stickerSvg(e.sticker);
+    const imgs = (e.images || []).map((src) => '<img src="' + src + '" />').join("");
+    page.innerHTML =
+      '<div class="bp-date">' + e.date + ' <span class="bp-week">周' + wd + (e.time ? " · " + (e.time || "").slice(0, 5) : "") + '</span></div>' +
+      (mood ? '<span class="bp-mood" style="background:' + mood.color + '">' + mood.label + '</span>' : "") +
+      '<div class="bp-text">' + escapeHtml(e.text || "") + '</div>' +
+      (imgs ? '<div class="bp-media">' + imgs + '</div>' : "") +
+      (sticker ? '<div class="bp-sticker">' + sticker + '</div>' : "");
+  }
+  function flipReader(dir) {
+    const entries = dailyEntriesOfMonth(readerYm);
+    const page = $("#bookPage");
+    if (!page) return;
+    const ni = readerIdx + dir;
+    if (ni < 0 || ni >= entries.length) return;
+    const outCls = dir > 0 ? "flip-out-next" : "flip-out-prev";
+    const inCls = dir > 0 ? "flip-in-next" : "flip-in-prev";
+    page.classList.add(outCls);
+    setTimeout(() => {
+      readerIdx = ni;
+      renderBookPage(readerIdx);
+      page.classList.remove(outCls);
+      page.classList.add(inCls);
+      const prog = $("#readerProgress");
+      if (prog) prog.textContent = (readerIdx + 1) + " / " + entries.length;
+      setTimeout(() => page.classList.remove(inCls), 260);
+    }, 210);
+  }
+  function bindBookSwipe() {
+    const book = $("#book");
+    if (!book) return;
+    let sx = 0, sy = 0, t0 = 0;
+    book.addEventListener("touchstart", (e) => {
+      const t = e.changedTouches[0]; sx = t.clientX; sy = t.clientY; t0 = Date.now();
+    }, { passive: true });
+    book.addEventListener("touchend", (e) => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) && Date.now() - t0 < 600) flipReader(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  }
+
+  function renderOverview() {
+    const ym = readerYm;
+    const title = $("#ovTitle");
+    if (title) title.textContent = "📚 " + ym.replace("-", "年") + "月 概览";
+    const grid = $("#ovGrid");
+    const empty = $("#ovEmpty");
+    if (!grid) return;
+    const entries = dailyEntriesOfMonth(ym);
+    if (!entries.length) { grid.innerHTML = ""; if (empty) empty.style.display = "block"; return; }
+    if (empty) empty.style.display = "none";
+    grid.innerHTML = entries.map((e, i) => {
+      const dt = new Date(e.date + "T00:00:00");
+      const img = (e.images && e.images[0]) ? '<div class="ov-card-media"><img src="' + e.images[0] + '"/></div>' : "";
+      return '<div class="ov-card" data-idx="' + i + '"><div class="ov-card-date">' + e.date + (e.time ? " " + (e.time || "").slice(0, 5) : "") + '</div><div class="ov-card-text">' + escapeHtml((e.text || "（无文字）").slice(0, 60)) + '</div>' + img + '</div>';
+    }).join("");
+    $$(".ov-card", grid).forEach((c) => c.addEventListener("click", () => {
+      readerIdx = parseInt(c.dataset.idx, 10);
+      showDailyScreen("reader");
+    }));
+  }
+
+  function openEditor(opts) {
+    opts = opts || {};
+    editorId = opts.id || null;
+    editorPendingImages = [];
+    editorSticker = "";
+    const entry = editorId ? getDailyEntry(editorId) : null;
+    const title = $("#editorTitle");
+    if (title) title.textContent = entry ? "✏️ 编辑手账" : "✏️ 写手账";
+    const date = opts.date || (entry && entry.date) || todayStr();
+    const dEl = $("#editorDate"); if (dEl) dEl.value = date;
+    const now = new Date();
+    const tEl = $("#editorTime");
+    if (tEl) tEl.value = (entry && entry.time) ? entry.time : String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    const tx = $("#editorText");
+    if (tx) { tx.value = entry ? (entry.text || "") : ""; }
+    renderMoodChips(entry ? entry.mood : null);
+    editorSticker = entry ? (entry.sticker || "") : "";
+    renderStickerPreview();
+    if (entry) editorPendingImages = (entry.images || []).slice();
+    renderEditorPhotos();
+    const del = $("#editorDelete");
+    if (del) del.style.display = entry ? "inline-block" : "none";
+    showDailyScreen("editor");
+  }
+  function renderMoodChips(activeKey) {
+    const box = $("#editorMoods");
+    if (!box) return;
+    box.innerHTML = DAILY_MOODS.map((m) =>
+      '<button type="button" class="mood-chip' + (m.key === activeKey ? " active" : "") + '" data-mood="' + m.key + '">' + m.label + '</button>'
+    ).join("");
+    $$(".mood-chip", box).forEach((b) => b.addEventListener("click", () => {
+      $$(".mood-chip", box).forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+    }));
+  }
+  function renderStickerPreview() {
+    const p = $("#editorStickerPreview");
+    if (p) p.innerHTML = stickerSvg(editorSticker);
+    $$(".sticker-opt").forEach((b) => b.classList.toggle("active", b.dataset.sticker === editorSticker));
+  }
+  function renderEditorPhotos() {
+    const box = $("#editorPhotos");
+    if (!box) return;
+    box.innerHTML = editorPendingImages.map((src, i) =>
+      '<div class="paper-photo-thumb"><img src="' + src + '"/><button class="paper-photo-del" data-i="' + i + '">×</button></div>'
+    ).join("");
+    $$(".paper-photo-del", box).forEach((b) => b.addEventListener("click", () => {
+      editorPendingImages.splice(parseInt(b.dataset.i, 10), 1);
+      renderEditorPhotos();
+    }));
   }
   function compressImage(file, maxWidth, quality) {
     maxWidth = maxWidth || 1200; quality = quality || 0.8;
@@ -2856,128 +3044,66 @@
       reader.readAsDataURL(file);
     });
   }
-  function renderDailyPhotos() {
-    const box = $("#dailyPhotos");
-    if (!box) return;
-    box.innerHTML = dailyPendingImages.map((src, i) =>
-      '<div class="daily-photo-thumb"><img src="' + src + '"/><button class="daily-photo-del" data-i="' + i + '">×</button></div>'
-    ).join("");
-    $$(".daily-photo-del", box).forEach((b) => b.addEventListener("click", () => {
-      dailyPendingImages.splice(parseInt(b.dataset.i, 10), 1);
-      renderDailyPhotos();
-    }));
-  }
-  async function handleDailyFile(input) {
+  async function handleEditorFile(input) {
     const file = input.files && input.files[0];
     if (!file) return;
     try {
       const dataUrl = await compressImage(file);
-      dailyPendingImages.push(dataUrl);
-      renderDailyPhotos();
+      editorPendingImages.push(dataUrl);
+      renderEditorPhotos();
     } catch (e) { alert("图片处理失败，换一张试试～"); }
     input.value = "";
   }
-  function openDailyEdit(date) {
+  function saveEntry() {
     dailyNorm();
-    dailyEditingId = null;
-    dailyPendingImages = [];
-    const entry = getDailyEntry(date);
-    $("#dailyModalTitle").textContent = entry ? "✏️ 编辑日常" : "📝 记日常";
-    $("#dailyDate").value = date;
-    const now = new Date();
-    $("#dailyTime").value = entry && entry.time ? entry.time : String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-    $("#dailyText").value = entry ? entry.text : "";
-    if (entry) {
-      dailyEditingId = entry.id;
-      dailyPendingImages = (entry.images || []).slice();
-      $("#dailyDelete").style.display = "inline-block";
+    const date = $("#editorDate").value || todayStr();
+    const time = $("#editorTime").value || "08:00";
+    const text = $("#editorText").value.trim();
+    const moodEl = $(".mood-chip.active");
+    const mood = moodEl ? moodEl.dataset.mood : null;
+    if (!text && !editorPendingImages.length) { alert("写点什么或加张图再保存吧～"); return; }
+    if (editorId) {
+      const e = getDailyEntry(editorId);
+      if (e) { e.date = date; e.time = time; e.text = text; e.mood = mood; e.sticker = editorSticker; e.images = editorPendingImages.slice(); e.updatedAt = Date.now(); }
     } else {
-      $("#dailyDelete").style.display = "none";
+      state.daily.entries.push({ id: uid(), date, time, text, mood, sticker: editorSticker, images: editorPendingImages.slice(), createdAt: Date.now(), updatedAt: Date.now() });
     }
-    renderDailyPhotos();
-    $("#dailyModal").classList.add("show");
+    saveAll();
+    readerYm = date.slice(0, 7);
+    readerIdx = dailyEntriesOfMonth(readerYm).length - 1;
+    if (readerIdx < 0) readerIdx = 0;
+    showDailyScreen("reader");
   }
-  function renderDaily() {
-    dailyNorm();
-    renderDailyDateStrip();
-    const list = $("#dailyList");
-    const empty = $("#dailyEmpty");
-    if (!list || !empty) return;
-    const entries = state.daily.entries.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
-    if (!entries.length) { list.innerHTML = ""; empty.style.display = "block"; return; }
-    empty.style.display = "none";
-    list.innerHTML = entries.map((e) => {
-      const dt = new Date(e.date + "T00:00:00");
-      const month = dt.getMonth() + 1;
-      const day = dt.getDate();
-      const time = (e.time || "00:00").slice(0, 5);
-      const imgs = (e.images || []).map((src) => '<img src="' + src + '" />').join("");
-      return '<div class="daily-group"><div class="daily-group-date">' + month + '月' + day + '日 <span class="daily-group-time">' + time + '</span></div><div class="daily-card" data-id="' + e.id + '"><div class="daily-card-text">' + escapeHtml(e.text || "") + '</div>' + (imgs ? '<div class="daily-card-media">' + imgs + '</div>' : "") + DAILY_CAT_SVG + '</div></div>';
-    }).join("");
-    $$(".daily-card", list).forEach((c) => c.addEventListener("click", () => {
-      const e = state.daily.entries.find((x) => x.id === c.dataset.id);
-      if (e) openDailyEdit(e.date);
-    }));
-  }
-  function renderDailyBook() {
-    dailyNorm();
-    const ym = state.daily.bookMonth;
-    const titleEl = $("#dailyBookTitle");
-    const pages = $("#dailyBookPages");
-    const empty = $("#dailyBookEmpty");
-    if (!titleEl || !pages || !empty) return;
-    const [y, m] = ym.split("-").map(Number);
-    titleEl.textContent = "📔 " + (y % 100) + "年" + m + "月";
-    const entries = state.daily.entries.filter((e) => (e.date || "").slice(0, 7) === ym).sort((a, b) => (a.date < b.date ? -1 : 1));
-    if (!entries.length) { pages.innerHTML = ""; empty.style.display = "block"; return; }
-    empty.style.display = "none";
-    pages.innerHTML = entries.map((e) => {
-      const dt = new Date(e.date + "T00:00:00");
-      const d = dt.getDate();
-      const wd = ["日", "一", "二", "三", "四", "五", "六"][dt.getDay()];
-      const imgs = (e.images || []).map((src) => '<img src="' + src + '" />').join("");
-      return '<div class="daily-book-entry"><div class="daily-book-entry-date">' + m + '月' + d + '日 周' + wd + '</div><div class="daily-book-entry-text">' + escapeHtml(e.text || "") + '</div>' + (imgs ? '<div class="daily-book-entry-media">' + imgs + '</div>' : "") + '</div>';
-    }).join("");
-  }
-  function dailyShiftMonth(delta) {
-    dailyNorm();
-    const [y, m] = state.daily.bookMonth.split("-").map(Number);
-    const d = new Date(y, m - 1 + delta, 1);
-    state.daily.bookMonth = d.toISOString().slice(0, 7);
-    renderDailyBook();
+  function deleteEntry() {
+    if (!editorId) return;
+    if (!confirm("删除这条手账记录？")) return;
+    state.daily.entries = state.daily.entries.filter((x) => x.id !== editorId);
+    saveAll();
+    editorId = null;
+    showDailyScreen("reader");
   }
 
-  $("#dailyAddBtn").addEventListener("click", () => openDailyEdit(todayStr()));
-  $("#dailyBookBtn").addEventListener("click", () => { state.daily.bookMonth = monthStr(); renderDailyBook(); $("#dailyBookModal").classList.add("show"); });
-  $("#dailyBookClose").addEventListener("click", () => $("#dailyBookModal").classList.remove("show"));
-  $("#dailyBookPrev").addEventListener("click", () => dailyShiftMonth(-1));
-  $("#dailyBookNext").addEventListener("click", () => dailyShiftMonth(1));
-  $("#dailyCancel").addEventListener("click", () => { $("#dailyModal").classList.remove("show"); dailyEditingId = null; dailyPendingImages = []; });
-  $("#dailyDelete").addEventListener("click", () => {
-    if (!dailyEditingId) return;
-    if (confirm("删除这条日常记录？")) {
-      state.daily.entries = state.daily.entries.filter((x) => x.id !== dailyEditingId);
-      saveAll(); $("#dailyModal").classList.remove("show");
-      dailyEditingId = null; dailyPendingImages = []; renderDaily();
-    }
-  });
-  $("#dailySave").addEventListener("click", () => {
-    dailyNorm();
-    const date = $("#dailyDate").value || todayStr();
-    const time = $("#dailyTime").value || "08:00";
-    const text = $("#dailyText").value.trim();
-    if (!text && !dailyPendingImages.length) { alert("写点什么或加张图再保存吧～"); return; }
-    const entry = getDailyEntry(date);
-    if (entry) {
-      entry.time = time; entry.text = text; entry.images = dailyPendingImages.slice(); entry.updatedAt = Date.now();
-    } else {
-      state.daily.entries.push({ id: uid(), date, time, text, images: dailyPendingImages.slice(), createdAt: Date.now(), updatedAt: Date.now() });
-    }
-    saveAll(); $("#dailyModal").classList.remove("show");
-    dailyEditingId = null; dailyPendingImages = []; renderDaily();
-  });
-  $("#dailyCamera").addEventListener("change", () => handleDailyFile($("#dailyCamera")));
-  $("#dailyGallery").addEventListener("change", () => handleDailyFile($("#dailyGallery")));
+  // ---- 封面 / 阅览 / 概览 / 编辑 事件绑定 ----
+  $("#coverOpenBtn").addEventListener("click", () => { const cm = $("#coverMonth"); readerYm = (cm && cm.value) || monthStr(); readerIdx = 0; showDailyScreen("reader"); });
+  $("#coverMonth").addEventListener("change", () => { const cm = $("#coverMonth"); if (cm) buildCoverCalendar(cm.value || monthStr()); });
+  $("#coverNewBtn").addEventListener("click", () => { const cm = $("#coverMonth"); openEditor({ date: defaultNewDate((cm && cm.value) || monthStr()) }); });
+  $("#readerBack").addEventListener("click", () => showDailyScreen("cover"));
+  $("#readerOverview").addEventListener("click", () => showDailyScreen("overview"));
+  $("#readerMonth").addEventListener("change", () => { const rm = $("#readerMonth"); readerYm = (rm && rm.value) || monthStr(); readerIdx = 0; renderReader(); });
+  $("#readerEdit").addEventListener("click", () => { const e = dailyEntriesOfMonth(readerYm)[readerIdx]; if (e) openEditor({ id: e.id }); });
+  $("#readerAdd").addEventListener("click", () => openEditor({ date: defaultNewDate(readerYm) }));
+  $("#readerEmptyNew").addEventListener("click", () => openEditor({ date: defaultNewDate(readerYm) }));
+  $("#bookPrev").addEventListener("click", () => flipReader(-1));
+  $("#bookNext").addEventListener("click", () => flipReader(1));
+  $("#editorBack").addEventListener("click", () => showDailyScreen("reader"));
+  $("#editorSave").addEventListener("click", saveEntry);
+  $("#editorDelete").addEventListener("click", deleteEntry);
+  $("#editorCamera").addEventListener("change", () => handleEditorFile($("#editorCamera")));
+  $("#editorGallery").addEventListener("change", () => handleEditorFile($("#editorGallery")));
+  $$(".sticker-opt").forEach((b) => b.addEventListener("click", () => { editorSticker = b.dataset.sticker; renderStickerPreview(); }));
+  $("#ovBack").addEventListener("click", () => showDailyScreen("reader"));
+  $("#dailyAddBtn").addEventListener("click", () => openEditor({ date: defaultNewDate(monthStr()) }));
+  bindBookSwipe();
 
   /* =========================================================
      初始化
@@ -3006,7 +3132,7 @@
   renderRecipes();
   renderHot(); // 渲染热点小报
   renderBp(); // 渲染血压模块
-  renderDaily(); // 渲染日常模块
+  renderCover(); // 渲染日常手账本封面
   scheduleBpReminders();
   saveAll(); // 持久化合并后的默认类别等
 
@@ -3031,7 +3157,7 @@
     renderRecipes();
     renderHot();
     renderBp();
-    renderDaily();
+    renderCover();
   }
 
   async function exportBackup() {
@@ -3092,6 +3218,7 @@
       if (s.hot && typeof s.hot === "object") state.hot = s.hot;
       if (Array.isArray(s.shopping)) state.shopping = s.shopping;
       if (s.bp && typeof s.bp === "object") state.bp = s.bp;
+      if (s.daily && typeof s.daily === "object") state.daily = s.daily;
       saveAll();
       try {
         await dbClearAll();
