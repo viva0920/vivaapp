@@ -1,0 +1,11 @@
+# 不推上 GitHub Pages 的隐私/垃圾文件
+.workbuddy/
+server.log
+*.log
+手机工作台-发布包/
+手机工作台-发布包.zip
+README_*.md
+runtest*.js
+*.zip
+node_modules/
+.DS_Store

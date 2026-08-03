@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#ffd9ea" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>🍓 小熊工作台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <div class="phone">
+    <!-- 顶部备份条 -->
+    <header class="topbar">
+      <div class="topbar-title">🍓 小熊工作台</div>
+      <div class="topbar-actions">
+        <button id="exportBtn" class="tb-btn" type="button">📤 备份</button>
+        <button id="importBtn" class="tb-btn" type="button">📥 恢复</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden />
+      </div>
+    </header>
+
+    <!-- 左侧模块导航 -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-emoji">🐻</div>
+        <div class="brand-text">小熊<br/>工作台</div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-module="account">
+          <span class="nav-emoji">🧾</span>
+          <span class="nav-label">记账</span>
+        </button>
+        <button class="nav-item" data-module="diet">
+          <span class="nav-emoji">🥗</span>
+          <span class="nav-label">减肥</span>
+        </button>
+        <button class="nav-item" data-module="bake">
+          <span class="nav-emoji">🧁</span>
+          <span class="nav-label">烘焙</span>
+        </button>
+        <button class="nav-item" data-module="hot">
+          <span class="nav-emoji">🔥</span>
+          <span class="nav-label">热点</span>
+        </button>
+      </nav>
+      <div class="sidebar-foot">💕 v1.0</div>
+    </aside>
+
+    <!-- 右侧内容 -->
+    <main class="content">
+      <!-- ===== 记账模块 ===== -->
+      <section id="module-account" class="module active">
+        <header class="module-head">
+          <h1>🧾 记账本</h1>
+          <p class="subtitle">钱钱去哪儿啦～</p>
+        </header>
+
+        <div class="month-bar">
+          <button id="prevMonth" class="round-btn">‹</button>
+          <span id="monthLabel" class="month-label">—</span>
+          <button id="nextMonth" class="round-btn">›</button>
+        </div>
+
+        <div class="summary">
+          <div class="sum-card income">
+            <div class="sum-label">收入</div>
+            <div class="sum-value" id="totalIncome">¥0</div>
+          </div>
+          <div class="sum-card expense">
+            <div class="sum-label">支出</div>
+            <div class="sum-value" id="totalExpense">¥0</div>
+          </div>
+          <div class="sum-card balance">
+            <div class="sum-label">结余</div>
+            <div class="sum-value" id="balance">¥0</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-toggle">
+            <button class="ct-btn active" data-chart="expense">支出分布</button>
+            <button class="ct-btn" data-chart="income">收入分布</button>
+          </div>
+          <div class="chart-body">
+            <div class="pie-box">
+              <svg id="pieChart" viewBox="0 0 200 200" aria-label="饼状图"></svg>
+            </div>
+            <div id="pieLegend" class="legend"></div>
+          </div>
+          <div id="pieEmpty" class="empty-hint">这个月还没有记录哦 🐣</div>
+        </div>
+
+        <div class="add-card">
+          <div class="type-toggle">
+            <button type="button" class="tt-btn active" data-type="expense">支出</button>
+            <button type="button" class="tt-btn" data-type="income">收入</button>
+          </div>
+          <form id="recordForm" class="record-form">
+            <div class="field">
+              <label>金额</label>
+              <input type="number" id="amountInput" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required />
+            </div>
+            <div class="field">
+              <label>类别</label>
+              <div class="cat-row">
+                <select id="categorySelect" required></select>
+                <button type="button" id="addCategoryBtn" class="mini-btn" title="添加类别">➕</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>日期</label>
+              <input type="date" id="dateInput" required />
+            </div>
+            <div class="field">
+              <label>备注</label>
+              <input type="text" id="noteInput" maxlength="30" placeholder="可选～" />
+            </div>
+            <button type="submit" class="primary-btn">记一笔 ✏️</button>
+          </form>
+        </div>
+
+        <div class="list-card">
+          <h2>本月明细</h2>
+          <ul id="recordList" class="record-list"></ul>
+        </div>
+      </section>
+
+      <!-- ===== 减肥模块 ===== -->
+      <section id="module-diet" class="module">
+        <header class="module-head">
+          <h1>🥗 减肥日记</h1>
+          <p class="subtitle">一起变轻盈吧～</p>
+        </header>
+
+        <div class="diet-stats">
+          <div class="dstat">
+            <div class="dstat-label">当前</div>
+            <div class="dstat-value"><span id="curWeight">—</span><small>kg</small></div>
+          </div>
+          <div class="dstat">
+            <div class="dstat-label">已减</div>
+            <div class="dstat-value loss"><span id="lostWeight">—</span><small>kg</small></div>
+          </div>
+          <div class="dstat">
+            <div class="dstat-label">目标</div>
+            <div class="dstat-value"><span id="goalWeight">—</span><small>kg</small></div>
+          </div>
+          <div class="dstat">
+            <div class="dstat-label">还需/天数</div>
+            <div class="dstat-value"><span id="remainDays">—</span></div>
+          </div>
+        </div>
+
+        <button id="editProfileBtn" class="ghost-btn slim">⚙️ 完善身材信息，计划更精准</button>
+
+        <div class="plan-card">
+          <div class="plan-head">
+            <h2>📅 今日计划</h2>
+            <span id="planDate" class="plan-date"></span>
+          </div>
+          <div class="plan-summary">
+            🔥 建议每日摄入 <b id="kcalTarget">—</b> kcal（缺口 500）· 今日打卡 <b id="planDone">0/0</b>
+          </div>
+
+          <h3 class="plan-sub">🍽️ 减脂餐推荐</h3>
+          <div id="mealList" class="meal-list"></div>
+
+          <h3 class="plan-sub">🏃 运动推荐</h3>
+          <div id="exList" class="ex-list"></div>
+          <div class="ex-add">
+            <button id="addExBtn" class="mini-add">➕ 添加我的运动</button>
+            <div id="exAddForm" class="ex-add-form">
+              <input id="exNameInput" placeholder="运动名，如 游泳" />
+              <input id="exMinInput" type="number" placeholder="分钟" />
+              <button id="exAddConfirm" class="mini-btn">加</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="goal-card">
+          <div class="goal-head">
+            <span>🎯 目标进度</span>
+            <span id="goalPercent">0%</span>
+          </div>
+          <div class="progress-track"><div id="goalBar" class="progress-bar"></div></div>
+          <div class="goal-edit">
+            <input type="number" id="goalInput" step="0.1" placeholder="设定目标体重" />
+            <button id="saveGoalBtn" class="mini-btn">保存</button>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h2>体重趋势</h2>
+          <div class="line-box">
+            <svg id="weightChart" viewBox="0 0 320 200" aria-label="体重折线图"></svg>
+          </div>
+          <div id="weightEmpty" class="empty-hint">还没有体重记录哦 🐣</div>
+        </div>
+
+        <div class="add-card">
+          <form id="weightForm" class="record-form">
+            <div class="field">
+              <label>日期</label>
+              <input type="date" id="wDateInput" required />
+            </div>
+            <div class="field">
+              <label>体重 (kg)</label>
+              <input type="number" id="wWeightInput" step="0.1" min="0" placeholder="如 55.5" required />
+            </div>
+            <div class="field">
+              <label>小记</label>
+              <input type="text" id="wNoteInput" maxlength="30" placeholder="今天状态如何～" />
+            </div>
+            <button type="submit" class="primary-btn diet">记体重 ⚖️</button>
+          </form>
+        </div>
+
+        <div class="food-card">
+          <div class="food-head">
+            <h2>📷 饮食打卡</h2>
+            <input type="date" id="foodDate" />
+          </div>
+          <p class="food-tip">每天拍下你吃的东西，记录更真实～</p>
+          <div id="foodGrid" class="food-grid"></div>
+          <label class="photo-btn">📸 拍照 / 上传
+            <input type="file" id="foodPhoto" accept="image/*" capture="environment" hidden />
+          </label>
+        </div>
+
+        <div class="list-card">
+          <h2>体重记录列表</h2>
+          <ul id="weightList" class="record-list"></ul>
+        </div>
+      </section>
+
+      <!-- ===== 烘焙模块 ===== -->
+      <section id="module-bake" class="module">
+        <header class="module-head">
+          <h1>🧁 烘焙小屋</h1>
+          <p class="subtitle">收藏你的甜蜜配方～</p>
+        </header>
+
+        <!-- 每日烘焙视频推荐 -->
+        <div class="bake-rec-card">
+          <div class="bake-rec-top">
+            <div>
+              <h2>✨ 今日烘焙推荐</h2>
+              <p class="bake-rec-date" id="bakeDate"></p>
+            </div>
+            <button id="bakeShuffle" class="bake-shuffle-btn"><span class="bf-ico">🔄</span> 换一批</button>
+          </div>
+          <div id="bakeCats" class="bake-cats"></div>
+          <div id="bakeVideos" class="bake-videos"></div>
+        </div>
+
+        <button id="bakeFavBtn" class="primary-btn bake outline">📚 我的收藏</button>
+        <button id="shopBtn" class="primary-btn bake outline">🛒 购物清单</button>
+
+        <button id="addRecipeBtn" class="primary-btn bake">➕ 添加食谱</button>
+
+        <div id="recipeGrid" class="recipe-grid"></div>
+        <div id="recipeEmpty" class="empty-hint">还没有食谱，点上面按钮添加吧 🍰</div>
+      </section>
+
+      <section id="module-hot" class="module">
+        <header class="module-head">
+          <h1>🔥 热点小报</h1>
+          <p class="subtitle">每日自动整理抖音爆款选题</p>
+        </header>
+        <div class="hot-settings">
+          <label class="hot-set-label">推送时间
+            <input type="time" id="hotPushTime" value="08:30" />
+          </label>
+          <label class="hot-set-label">每板块条数
+            <input type="number" id="hotPerCat" min="1" max="20" value="8" />
+          </label>
+        </div>
+        <div class="hot-actions">
+          <button id="hotRegenerate" class="hot-btn">🔄 重新生成今日简报</button>
+          <button id="hotRefresh" class="hot-btn">⚡ 刷新实时热点</button>
+          <button id="hotHistoryBtn" class="hot-btn">📅 近3天</button>
+        </div>
+        <div class="hot-chips" id="hotChips"></div>
+        <div class="hot-brief" id="hotBrief"></div>
+        <div class="hot-trend" id="hotTrend"></div>
+        <div class="hot-history" id="hotHistory" style="display:none"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 添加类别弹窗 -->
+  <div id="catModal" class="modal-mask">
+    <div class="modal">
+      <h3>➕ 添加类别</h3>
+      <div class="field">
+        <label>类型</label>
+        <div id="catTypeLabel" class="cat-type-label">支出</div>
+      </div>
+      <div class="field">
+        <label>名称</label>
+        <input type="text" id="catNameInput" maxlength="8" placeholder="如 宠物" />
+      </div>
+      <div class="field">
+        <label>图标 (emoji)</label>
+        <input type="text" id="catIconInput" maxlength="4" value="🏷️" />
+      </div>
+      <div class="field">
+        <label>颜色</label>
+        <div id="catColorPicker" class="color-picker"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="catCancel" class="ghost-btn">取消</button>
+        <button id="catSave" class="primary-btn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 食谱弹窗 -->
+  <div id="recipeModal" class="modal-mask">
+    <div class="modal">
+      <h3 id="recipeModalTitle">🍰 新食谱</h3>
+      <div class="field">
+        <label>名称</label>
+        <input type="text" id="rNameInput" maxlength="20" placeholder="如 北海道戚风" />
+      </div>
+      <div class="field">
+        <label>图标</label>
+        <input type="text" id="rEmojiInput" maxlength="4" value="🧁" />
+      </div>
+      <div class="field">
+        <label>耗时 (分钟)</label>
+        <input type="number" id="rTimeInput" min="0" placeholder="如 60" />
+      </div>
+      <div class="field">
+        <label>食材</label>
+        <textarea id="rIngInput" rows="3" placeholder="每行一种，如：&#10;鸡蛋 3个&#10;低筋面粉 50g"></textarea>
+      </div>
+      <div class="field">
+        <label>步骤（可加图片）</label>
+        <div id="stepEditor" class="step-editor"></div>
+        <button type="button" id="addStepBtn" class="mini-btn">＋ 添加步骤</button>
+      </div>
+      <div class="field">
+        <label>小贴士</label>
+        <input type="text" id="rNoteInput" maxlength="40" placeholder="可选" />
+      </div>
+      <div class="modal-actions">
+        <button id="recipeCancel" class="ghost-btn">取消</button>
+        <button id="recipeSave" class="primary-btn bake">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 身材信息弹窗 -->
+  <div id="profileModal" class="modal-mask">
+    <div class="modal">
+      <h3>⚙️ 身材信息</h3>
+      <div class="field">
+        <label>性别</label>
+        <select id="pSex">
+          <option value="f">女生</option>
+          <option value="m">男生</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>身高 (cm)</label>
+        <input type="number" id="pHeight" min="100" max="230" placeholder="如 165" />
+      </div>
+      <div class="field">
+        <label>年龄</label>
+        <input type="number" id="pAge" min="10" max="100" placeholder="如 25" />
+      </div>
+      <div class="field">
+        <label>活动量</label>
+        <select id="pActivity">
+          <option value="1.2">久坐少动</option>
+          <option value="1.375">轻度活动</option>
+          <option value="1.55">中度活动</option>
+          <option value="1.725">高强度</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>当前体重 (kg，可选)</label>
+        <input type="number" id="pWeight" step="0.1" min="0" placeholder="留空则用最新记录" />
+      </div>
+      <div class="modal-actions">
+        <button id="profileCancel" class="ghost-btn">取消</button>
+        <button id="profileSave" class="primary-btn diet">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 照片查看弹窗 -->
+  <div id="photoModal" class="modal-mask">
+    <div class="modal photo-modal">
+      <img id="photoBig" src="" alt="饮食照片" />
+      <p id="photoNote" class="photo-note"></p>
+      <div class="modal-actions">
+        <button id="photoDelete" class="ghost-btn">🗑️ 删除</button>
+        <button id="photoClose" class="primary-btn diet">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 收藏到（分类选择）弹窗 -->
+  <div id="favSheet" class="modal-mask">
+    <div class="modal">
+      <h3>收藏到…</h3>
+      <p id="favSheetTitle" class="fav-sheet-title"></p>
+      <div id="favChips" class="fav-chips"></div>
+      <div class="fav-add-row">
+        <input type="text" id="favNewInput" maxlength="10" placeholder="新建分类，如 周末做" />
+        <button id="favNewBtn" class="mini-btn">＋ 新建</button>
+      </div>
+      <div class="modal-actions">
+        <button id="favSheetDone" class="primary-btn bake">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的收藏（分类总览）弹窗 -->
+  <div id="favModal" class="modal-mask">
+    <div class="modal">
+      <h3>📚 我的收藏</h3>
+      <div id="favList" class="fav-list"></div>
+      <div class="modal-actions">
+        <button id="favModalClose" class="primary-btn bake">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 食谱详情（含计时器）弹窗 -->
+  <div id="recipeViewModal" class="modal-mask">
+    <div class="modal">
+      <h3 id="rvTitle">🧁 食谱</h3>
+      <div class="rv-meta" id="rvMeta"></div>
+
+      <div class="rv-timer">
+        <div class="rv-timer-head">
+          <span>⏲️ 烘焙计时器</span>
+          <span id="rvTimerStep" class="rv-timer-step"></span>
+        </div>
+        <div id="rvTimerDisplay" class="rv-timer-display">00:00</div>
+        <div id="rvTimerStepText" class="rv-timer-step-text"></div>
+        <div class="rv-timer-steps" id="rvTimerSteps"></div>
+        <div class="rv-timer-btns">
+          <button id="rvTimerStart" class="mini-btn">▶ 开始</button>
+          <button id="rvTimerReset" class="mini-btn">↺ 重置</button>
+          <button id="rvTimerNext" class="mini-btn">下一歩 ⏭</button>
+        </div>
+        <p class="rv-timer-tip">💡 锁屏也能响：已申请后台声音与震动，到点会“滴—”并震动提醒（需添加到主屏幕效果最佳）。</p>
+      </div>
+
+      <div class="rv-section">
+        <div class="rv-section-head">
+          <h4>🥣 食材</h4>
+          <button id="rvToShop" class="mini-btn">🛒 加入购物清单</button>
+        </div>
+        <pre id="rvIngredients" class="rv-pre"></pre>
+      </div>
+
+      <div class="rv-section">
+        <h4>👩‍🍳 步骤</h4>
+        <div id="rvSteps" class="rv-steps"></div>
+      </div>
+
+      <div class="rv-section" id="rvNoteWrap" style="display:none">
+        <h4>💡 小贴士</h4>
+        <pre id="rvNote" class="rv-pre"></pre>
+      </div>
+
+      <div class="modal-actions">
+        <button id="rvEdit" class="ghost-btn">✏️ 编辑</button>
+        <button id="rvClose" class="primary-btn bake">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 推荐食谱详情（图文步骤）弹窗 -->
+  <div id="bakeVideoModal" class="modal-mask">
+    <div class="modal">
+      <h3 id="bvTitle">🧁 食谱</h3>
+      <div class="rv-meta" id="bvMeta"></div>
+
+      <div class="bv-actions">
+        <a id="bvWatch" class="primary-btn bake outline" target="_blank" rel="noopener">📺 看视频教程</a>
+        <button id="bvFavBtn" class="ghost-btn">♡ 收藏</button>
+      </div>
+
+      <div class="rv-section">
+        <div class="rv-section-head">
+          <h4>👩‍🍳 图文步骤</h4>
+          <span class="bv-tip">点「📷 加图」给每步拍/传你的成品图</span>
+        </div>
+        <div id="bvSteps" class="rv-steps"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="bvSaveRecipe" class="ghost-btn">💾 存为我的食谱</button>
+        <button id="bvClose" class="primary-btn bake">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 购物清单弹窗 -->
+  <div id="shopModal" class="modal-mask">
+    <div class="modal">
+      <h3>🛒 购物清单 <span id="shopCount" class="shop-count"></span></h3>
+      <div id="shopList" class="shop-list"></div>
+      <div id="shopEmpty" class="empty-hint">清单是空的，点食谱里的「🛒 加入购物清单」就能添加 🧺</div>
+      <div class="modal-actions">
+        <button id="shopClear" class="ghost-btn">🗑️ 清空</button>
+        <button id="shopClose" class="primary-btn bake">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=2"></script>
+</body>
+</html>
