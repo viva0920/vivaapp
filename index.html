@@ -55,6 +55,10 @@
           <span class="nav-emoji">🩺</span>
           <span class="nav-label">血压</span>
         </button>
+        <button class="nav-item" data-module="daily">
+          <span class="nav-emoji">📝</span>
+          <span class="nav-label">日常</span>
+        </button>
       </nav>
       <div class="sidebar-foot">💕 v1.0</div>
     </aside>
@@ -356,6 +360,37 @@
         </div>
       </section>
 
+      <!-- ===== 日常模块 ===== -->
+      <section id="module-daily" class="module">
+        <header class="module-head">
+          <h1>📝 日常</h1>
+          <p class="subtitle">记录每天的小确幸 ✨</p>
+        </header>
+
+        <div class="daily-topbar">
+          <div class="daily-date-strip" id="dailyDateStrip"></div>
+          <button id="dailyBookBtn" class="daily-book-btn">📖 手账本</button>
+        </div>
+
+        <div class="daily-list" id="dailyList"></div>
+        <div class="daily-empty" id="dailyEmpty" style="display:none">
+          <svg class="daily-empty-cat" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="66" r="36" fill="#fff" stroke="#7a6f8a" stroke-width="3"/>
+            <polygon points="32,44 24,16 50,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
+            <polygon points="88,44 96,16 70,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="48" cy="60" r="4" fill="#7a6f8a"/>
+            <circle cx="72" cy="60" r="4" fill="#7a6f8a"/>
+            <path d="M56,68 Q60,72 64,68" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="60" cy="88" rx="10" ry="6" fill="#ffd9ea"/>
+            <path d="M82,78 Q95,75 98,85 Q100,95 88,96 Q80,97 78,90" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M84,82 L84,92" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p>今天还没有记录哦～<br/>点右下角 ✏️ 写下第一句吧</p>
+        </div>
+
+        <button id="dailyAddBtn" class="daily-fab" aria-label="写日记">✏️</button>
+      </section>
+
     </main>
   </div>
 
@@ -617,6 +652,67 @@
       <div class="modal-actions">
         <button id="bpMCancel" class="ghost-btn">取消</button>
         <button id="bpMSave" class="primary-btn diet">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日常编辑弹窗 -->
+  <div id="dailyModal" class="modal-mask">
+    <div class="modal daily-modal">
+      <h3 id="dailyModalTitle">📝 记日常</h3>
+      <div class="daily-page">
+        <div class="daily-page-meta">
+          <input type="date" id="dailyDate" />
+          <input type="time" id="dailyTime" />
+        </div>
+        <div class="daily-paper">
+          <textarea id="dailyText" placeholder="今天发生了什么？写下心情、琐事、小确幸…"></textarea>
+          <svg class="daily-page-cat" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="66" r="36" fill="#fff" stroke="#7a6f8a" stroke-width="3"/>
+            <polygon points="32,44 24,16 50,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
+            <polygon points="88,44 96,16 70,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
+            <circle cx="48" cy="60" r="4" fill="#7a6f8a"/>
+            <circle cx="72" cy="60" r="4" fill="#7a6f8a"/>
+            <path d="M56,68 Q60,72 64,68" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="60" cy="88" rx="10" ry="6" fill="#ffd9ea"/>
+            <path d="M82,78 Q95,75 98,85 Q100,95 88,96 Q80,97 78,90" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M84,82 L84,92" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="daily-photos" id="dailyPhotos"></div>
+        <div class="daily-actions-row">
+          <label class="daily-file-btn">
+            📷 拍照
+            <input type="file" id="dailyCamera" accept="image/*" capture="environment" hidden />
+          </label>
+          <label class="daily-file-btn">
+            🖼️ 相册
+            <input type="file" id="dailyGallery" accept="image/*" hidden />
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="dailyCancel" class="ghost-btn">取消</button>
+        <button id="dailyDelete" class="ghost-btn" style="display:none">🗑️ 删除</button>
+        <button id="dailySave" class="primary-btn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日常手账本弹窗 -->
+  <div id="dailyBookModal" class="modal-mask">
+    <div class="modal daily-book-modal">
+      <div class="daily-book-head">
+        <button id="dailyBookPrev" class="round-btn">‹</button>
+        <h3 id="dailyBookTitle">📔 26年7月</h3>
+        <button id="dailyBookNext" class="round-btn">›</button>
+      </div>
+      <div class="daily-book-pages" id="dailyBookPages"></div>
+      <div class="daily-book-empty" id="dailyBookEmpty" style="display:none">
+        这个月还没有记录，快去写第一篇吧～
+      </div>
+      <div class="modal-actions">
+        <button id="dailyBookClose" class="primary-btn">关闭</button>
       </div>
     </div>
   </div>
