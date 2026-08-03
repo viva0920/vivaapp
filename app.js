@@ -77,6 +77,7 @@
     shopping: store.get("wb_shopping", []),
     bp: store.get("wb_bp", null),
     exLibrary: store.get("wb_exlib", []),
+    daily: store.get("wb_daily", null),
     currentMonth: monthStr(),
     chartType: "expense",
     recType: "expense",
@@ -99,6 +100,7 @@
     store.set("wb_hot", state.hot);
     store.set("wb_bp", state.bp);
     store.set("wb_exlib", state.exLibrary);
+    store.set("wb_daily", state.daily);
   };
 
   /* =========================================================
@@ -2793,6 +2795,191 @@
   });
 
   /* =========================================================
+     日常模块
+     ========================================================= */
+  const DAILY_CAT_SVG = '<svg class="daily-card-cat" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="66" r="36" fill="#fff" stroke="#7a6f8a" stroke-width="3"/><polygon points="32,44 24,16 50,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/><polygon points="88,44 96,16 70,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/><circle cx="48" cy="60" r="4" fill="#7a6f8a"/><circle cx="72" cy="60" r="4" fill="#7a6f8a"/><path d="M56,68 Q60,72 64,68" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/><ellipse cx="60" cy="88" rx="10" ry="6" fill="#ffd9ea"/><path d="M82,78 Q95,75 98,85 Q100,95 88,96 Q80,97 78,90" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/><path d="M84,82 L84,92" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/></svg>';
+  let dailyEditingId = null;
+  let dailyPendingImages = [];
+
+  function dailyNorm() {
+    if (!state.daily || typeof state.daily !== "object") state.daily = {};
+    if (!Array.isArray(state.daily.entries)) state.daily.entries = [];
+    if (!state.daily.bookMonth) state.daily.bookMonth = monthStr();
+  }
+  function getDailyEntry(date) {
+    dailyNorm();
+    return state.daily.entries.find((e) => e.date === date) || null;
+  }
+  function renderDailyDateStrip() {
+    const strip = $("#dailyDateStrip");
+    if (!strip) return;
+    const today = todayStr();
+    const days = [];
+    for (let i = -6; i <= 0; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+    const hasMap = {};
+    state.daily.entries.forEach((e) => { if (e.date) hasMap[e.date] = true; });
+    strip.innerHTML = days.map((d) => {
+      const dt = new Date(d + "T00:00:00");
+      const num = dt.getDate();
+      const active = d === today;
+      const has = !!hasMap[d];
+      return '<div class="daily-date-item' + (active ? " active" : "") + (has ? " has" : "") + '" data-date="' + d + '"><div class="daily-date-cat">🐱</div><div class="daily-date-num">' + num + '</div></div>';
+    }).join("");
+    $$(".daily-date-item", strip).forEach((el) => {
+      el.addEventListener("click", () => openDailyEdit(el.dataset.date));
+    });
+  }
+  function compressImage(file, maxWidth, quality) {
+    maxWidth = maxWidth || 1200; quality = quality || 0.8;
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let w = img.width, h = img.height;
+          if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = reject;
+        img.src = ev.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function renderDailyPhotos() {
+    const box = $("#dailyPhotos");
+    if (!box) return;
+    box.innerHTML = dailyPendingImages.map((src, i) =>
+      '<div class="daily-photo-thumb"><img src="' + src + '"/><button class="daily-photo-del" data-i="' + i + '">×</button></div>'
+    ).join("");
+    $$(".daily-photo-del", box).forEach((b) => b.addEventListener("click", () => {
+      dailyPendingImages.splice(parseInt(b.dataset.i, 10), 1);
+      renderDailyPhotos();
+    }));
+  }
+  async function handleDailyFile(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImage(file);
+      dailyPendingImages.push(dataUrl);
+      renderDailyPhotos();
+    } catch (e) { alert("图片处理失败，换一张试试～"); }
+    input.value = "";
+  }
+  function openDailyEdit(date) {
+    dailyNorm();
+    dailyEditingId = null;
+    dailyPendingImages = [];
+    const entry = getDailyEntry(date);
+    $("#dailyModalTitle").textContent = entry ? "✏️ 编辑日常" : "📝 记日常";
+    $("#dailyDate").value = date;
+    const now = new Date();
+    $("#dailyTime").value = entry && entry.time ? entry.time : String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    $("#dailyText").value = entry ? entry.text : "";
+    if (entry) {
+      dailyEditingId = entry.id;
+      dailyPendingImages = (entry.images || []).slice();
+      $("#dailyDelete").style.display = "inline-block";
+    } else {
+      $("#dailyDelete").style.display = "none";
+    }
+    renderDailyPhotos();
+    $("#dailyModal").classList.add("show");
+  }
+  function renderDaily() {
+    dailyNorm();
+    renderDailyDateStrip();
+    const list = $("#dailyList");
+    const empty = $("#dailyEmpty");
+    if (!list || !empty) return;
+    const entries = state.daily.entries.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    if (!entries.length) { list.innerHTML = ""; empty.style.display = "block"; return; }
+    empty.style.display = "none";
+    list.innerHTML = entries.map((e) => {
+      const dt = new Date(e.date + "T00:00:00");
+      const month = dt.getMonth() + 1;
+      const day = dt.getDate();
+      const time = (e.time || "00:00").slice(0, 5);
+      const imgs = (e.images || []).map((src) => '<img src="' + src + '" />').join("");
+      return '<div class="daily-group"><div class="daily-group-date">' + month + '月' + day + '日 <span class="daily-group-time">' + time + '</span></div><div class="daily-card" data-id="' + e.id + '"><div class="daily-card-text">' + escapeHtml(e.text || "") + '</div>' + (imgs ? '<div class="daily-card-media">' + imgs + '</div>' : "") + DAILY_CAT_SVG + '</div></div>';
+    }).join("");
+    $$(".daily-card", list).forEach((c) => c.addEventListener("click", () => {
+      const e = state.daily.entries.find((x) => x.id === c.dataset.id);
+      if (e) openDailyEdit(e.date);
+    }));
+  }
+  function renderDailyBook() {
+    dailyNorm();
+    const ym = state.daily.bookMonth;
+    const titleEl = $("#dailyBookTitle");
+    const pages = $("#dailyBookPages");
+    const empty = $("#dailyBookEmpty");
+    if (!titleEl || !pages || !empty) return;
+    const [y, m] = ym.split("-").map(Number);
+    titleEl.textContent = "📔 " + (y % 100) + "年" + m + "月";
+    const entries = state.daily.entries.filter((e) => (e.date || "").slice(0, 7) === ym).sort((a, b) => (a.date < b.date ? -1 : 1));
+    if (!entries.length) { pages.innerHTML = ""; empty.style.display = "block"; return; }
+    empty.style.display = "none";
+    pages.innerHTML = entries.map((e) => {
+      const dt = new Date(e.date + "T00:00:00");
+      const d = dt.getDate();
+      const wd = ["日", "一", "二", "三", "四", "五", "六"][dt.getDay()];
+      const imgs = (e.images || []).map((src) => '<img src="' + src + '" />').join("");
+      return '<div class="daily-book-entry"><div class="daily-book-entry-date">' + m + '月' + d + '日 周' + wd + '</div><div class="daily-book-entry-text">' + escapeHtml(e.text || "") + '</div>' + (imgs ? '<div class="daily-book-entry-media">' + imgs + '</div>' : "") + '</div>';
+    }).join("");
+  }
+  function dailyShiftMonth(delta) {
+    dailyNorm();
+    const [y, m] = state.daily.bookMonth.split("-").map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    state.daily.bookMonth = d.toISOString().slice(0, 7);
+    renderDailyBook();
+  }
+
+  $("#dailyAddBtn").addEventListener("click", () => openDailyEdit(todayStr()));
+  $("#dailyBookBtn").addEventListener("click", () => { state.daily.bookMonth = monthStr(); renderDailyBook(); $("#dailyBookModal").classList.add("show"); });
+  $("#dailyBookClose").addEventListener("click", () => $("#dailyBookModal").classList.remove("show"));
+  $("#dailyBookPrev").addEventListener("click", () => dailyShiftMonth(-1));
+  $("#dailyBookNext").addEventListener("click", () => dailyShiftMonth(1));
+  $("#dailyCancel").addEventListener("click", () => { $("#dailyModal").classList.remove("show"); dailyEditingId = null; dailyPendingImages = []; });
+  $("#dailyDelete").addEventListener("click", () => {
+    if (!dailyEditingId) return;
+    if (confirm("删除这条日常记录？")) {
+      state.daily.entries = state.daily.entries.filter((x) => x.id !== dailyEditingId);
+      saveAll(); $("#dailyModal").classList.remove("show");
+      dailyEditingId = null; dailyPendingImages = []; renderDaily();
+    }
+  });
+  $("#dailySave").addEventListener("click", () => {
+    dailyNorm();
+    const date = $("#dailyDate").value || todayStr();
+    const time = $("#dailyTime").value || "08:00";
+    const text = $("#dailyText").value.trim();
+    if (!text && !dailyPendingImages.length) { alert("写点什么或加张图再保存吧～"); return; }
+    const entry = getDailyEntry(date);
+    if (entry) {
+      entry.time = time; entry.text = text; entry.images = dailyPendingImages.slice(); entry.updatedAt = Date.now();
+    } else {
+      state.daily.entries.push({ id: uid(), date, time, text, images: dailyPendingImages.slice(), createdAt: Date.now(), updatedAt: Date.now() });
+    }
+    saveAll(); $("#dailyModal").classList.remove("show");
+    dailyEditingId = null; dailyPendingImages = []; renderDaily();
+  });
+  $("#dailyCamera").addEventListener("change", () => handleDailyFile($("#dailyCamera")));
+  $("#dailyGallery").addEventListener("change", () => handleDailyFile($("#dailyGallery")));
+
+  /* =========================================================
      初始化
      ========================================================= */
   els.dateInput.value = todayStr();
@@ -2819,6 +3006,7 @@
   renderRecipes();
   renderHot(); // 渲染热点小报
   renderBp(); // 渲染血压模块
+  renderDaily(); // 渲染日常模块
   scheduleBpReminders();
   saveAll(); // 持久化合并后的默认类别等
 
@@ -2843,6 +3031,7 @@
     renderRecipes();
     renderHot();
     renderBp();
+    renderDaily();
   }
 
   async function exportBackup() {
@@ -2867,6 +3056,7 @@
         hot: state.hot,
         shopping: state.shopping,
         bp: state.bp,
+        daily: state.daily,
       },
       photos,
     };
