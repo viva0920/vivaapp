@@ -638,6 +638,14 @@ body {
   .bp-badge-normal { background: #d8f5ec; color: #2f9e7e; }
   .bp-badge-border { background: #fff1cf; color: #c47d00; }
   .bp-badge-high { background: #ffd9e2; color: #e23757; }
+  .bp-ref { background: #fff7fb; border: 1px solid #ffe1ec; border-radius: 14px; padding: 8px 12px; margin-bottom: 12px; }
+  .bp-ref summary { font-size: 13px; font-weight: 800; color: var(--pink-deep); cursor: pointer; user-select: none; }
+  .bp-ref-table { margin-top: 8px; font-size: 12px; }
+  .bp-ref-row { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 6px; padding: 5px 6px; border-radius: 8px; }
+  .bp-ref-row:nth-child(even) { background: #fff0f6; }
+  .bp-ref-head { background: #ffd9ea !important; font-weight: 800; color: var(--ink); }
+  .bp-ref-row span:not(:first-child) { text-align: center; color: var(--ink-soft); }
+  .bp-ref-note { margin-top: 6px; font-size: 11px; color: var(--ink-soft); line-height: 1.5; }
   .bp-line2 { font-size: 15px; color: var(--ink); margin-top: 4px; }
   .bp-sbp, .bp-dbp { font-weight: 800; }
   .bp-sbp { color: #ff6f91; }
