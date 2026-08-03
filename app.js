@@ -1193,17 +1193,17 @@
   ];
 
   function seededShuffle(arr, seedStr) {
-    let h = 1779033 ^ seedStr.length;
+    // FNV-1a 32-bit 哈希，质量远高于原实现，避免相近字符串碰撞
+    let h = 2166136261 >>> 0;
     for (let i = 0; i < seedStr.length; i++) {
-      h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
-      h = (h << 13) | (h >>> 19);
+      h ^= seedStr.charCodeAt(i);
+      h = Math.imul(h, 16777619);
     }
-    let seed = (h ^ (h >>> 16)) >>> 0;
+    let seed = h >>> 0;
     const rand = () => {
-      seed = (seed + 0x6d2b79f5) >>> 0;
-      let t = seed;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + 0x7fa64685;
+      seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
     const a = arr.slice();
@@ -1218,17 +1218,19 @@
     return seededShuffle(pool, dateStr).slice(0, count);
   }
 
-  function genDigest(dateStr, perCat) {
+  function genDigest(dateStr, perCat, seed) {
+    const s = seed ? dateStr + '#' + seed : dateStr;
     return HOT_CATS.map((c) => ({
       key: c.key, name: c.name, emoji: c.emoji,
-      items: hotPick(c.pool, dateStr, perCat),
+      items: hotPick(c.pool, s, perCat),
     }));
   }
 
   /* 实时数据源：优先读取同源 hot-report.json（由每日定时任务/脚本生成）；拉不到则回退静态样例 */
-  async function fetchReport() {
+  async function fetchReport(bust) {
     try {
-      const r = await fetch("./hot-report.json", { cache: "no-store" });
+      const url = "./hot-report.json" + (bust ? ("?t=" + Date.now()) : "");
+      const r = await fetch(url, { cache: "no-store" });
       if (!r.ok) return null;
       const j = await r.json();
       if (!j || !Array.isArray(j.categories) || !j.categories.length) return null;
@@ -1236,16 +1238,35 @@
     } catch (e) { return null; }
   }
 
-  async function getHotCats(perCat, dateStr) {
-    const rep = await fetchReport();
+  function hotToast(msg) {
+    let t = document.getElementById("hotToast");
+    if (!t) {
+      t = document.createElement("div");
+      t.id = "hotToast";
+      t.style.cssText = "position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:rgba(35,28,46,.86);color:#fff;padding:9px 18px;border-radius:22px;font-size:13px;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.25)";
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = "1";
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.opacity = "0"; }, 1600);
+  }
+
+  async function getHotCats(perCat, dateStr, seed) {
+    const rep = await fetchReport(seed > 0);
     if (rep && Array.isArray(rep.categories) && rep.categories.length) {
       // 报告存在但日期不是今天 → 视为未每日刷新，回退「今日样例精选」（按日期确定性挑选，每天不同）
       if (rep.date && rep.date !== dateStr) {
-        return { categories: genDigest(dateStr, perCat), trend: null, fromReport: false, stale: rep.date };
+        return { categories: genDigest(dateStr, perCat, seed), trend: null, fromReport: false, stale: rep.date };
       }
-      return { categories: rep.categories, trend: rep.trend || null, fromReport: true };
+      // 报告是今天的：用 seed 重排条目顺序，让「重新生成/刷新」点击后产生可见变化
+      const cats = rep.categories.map((c) => ({
+        key: c.key, name: c.name, emoji: c.emoji,
+        items: seededShuffle(c.items && c.items.length ? c.items : [], dateStr + '#' + (seed || 0)),
+      }));
+      return { categories: cats, trend: rep.trend || null, fromReport: true };
     }
-    return { categories: genDigest(dateStr, perCat), trend: null, fromReport: false };
+    return { categories: genDigest(dateStr, perCat, seed), trend: null, fromReport: false };
   }
 
   function renderHotTrendFromReport(trend, perCat) {
@@ -1308,18 +1329,19 @@
   async function renderHot() { /* hotspot live */
     const dateStr = todayStr();
     const perCat = (state.hot && state.hot.perCat) || 8;
-    const res = await getHotCats(perCat, dateStr);
+    const seed = (state.hot && state.hot.regenSeed) || 0;
+    const res = await getHotCats(perCat, dateStr, seed);
     const list = res.categories;
     const trimmed = list.map((c) => ({ key: c.key, name: c.name, emoji: c.emoji, items: (c.items || []).slice(0, perCat) }));
     if (!state.hot) state.hot = {};
     if (!state.hot.history) state.hot.history = [];
-    if (!state.hot.history.some((h) => h.date === dateStr)) {
-      state.hot.history.push({ date: dateStr, ts: Date.now() });
-    }
+    const snap = { date: dateStr, ts: Date.now(), topics: trimmed.map((c) => ({ name: c.name, emoji: c.emoji, first: (c.items[0] || {}).topic })) };
+    const hi = state.hot.history.findIndex((h) => h.date === dateStr);
+    if (hi >= 0) state.hot.history[hi] = snap; else state.hot.history.push(snap);
     const staleNote = (res.stale) ? '<div class="hot-stale-note">⚠️ 自动报告最近更新于 ' + res.stale + '，可能未按日刷新；以下为「今日样例精选」（按日期每天不同），仅供灵感参考。</div>' : '';
     $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + dateStr + '】</div>' + staleNote + renderHotBrief(trimmed);
     $("#hotChips").innerHTML = HOT_CATS.map((c) => '<button class="hot-chip" data-key="' + c.key + '">' + c.emoji + " " + escapeHtml(c.name) + '</button>').join("");
-    $("#hotHistory").innerHTML = (state.hot.history || []).slice(-3).map((h) => '<div class="hot-history-item">📅 ' + h.date + '</div>').join("");
+    $("#hotHistory").innerHTML = (state.hot.history || []).slice(-3).reverse().map((h) => '<div class="hot-hist-day"><div class="hot-hist-date">📅 ' + h.date + '</div>' + (h.topics || []).map((t) => '<div class="hot-hist-topic">' + t.emoji + ' ' + escapeHtml(t.first || '') + '</div>').join('') + '</div>').join('');
     $("#hotTrend").innerHTML = res.trend ? renderHotTrendFromReport(res.trend, perCat) : renderHotTrend(trimmed, perCat);
 
     const brief = $("#hotBrief");
@@ -1359,22 +1381,35 @@
         $("#hotTrend").innerHTML = r2.trend ? renderHotTrendFromReport(r2.trend, v) : renderHotTrend(t2, v);
       });
     }
-    const refreshBrief = async () => {
+    const refreshBrief = async (btn) => {
+      if (btn) { btn.disabled = true; btn.dataset.orig = btn.textContent; btn.textContent = "⏳ 生成中…"; }
       const v = (state.hot && state.hot.perCat) || 8;
-      const r3 = await getHotCats(v, todayStr());
+      state.hot.regenSeed = ((state.hot && state.hot.regenSeed) || 0) + 1;
+      saveAll();
+      const r3 = await getHotCats(v, todayStr(), state.hot.regenSeed);
       const t3 = r3.categories.map((c) => ({ key: c.key, name: c.name, emoji: c.emoji, items: (c.items || []).slice(0, v) }));
       const sn3 = (r3.stale) ? '<div class="hot-stale-note">⚠️ 自动报告最近更新于 ' + r3.stale + '，可能未按日刷新；以下为「今日样例精选」（按日期每天不同），仅供灵感参考。</div>' : '';
       $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + todayStr() + '】</div>' + sn3 + renderHotBrief(t3);
       $("#hotTrend").innerHTML = r3.trend ? renderHotTrendFromReport(r3.trend, v) : renderHotTrend(t3, v);
-      if (!state.hot.history.some((h) => h.date === todayStr())) state.hot.history.push({ date: todayStr(), ts: Date.now() });
+      const snap3 = { date: todayStr(), ts: Date.now(), topics: t3.map((c) => ({ name: c.name, emoji: c.emoji, first: (c.items[0] || {}).topic })) };
+      const hi3 = state.hot.history.findIndex((h) => h.date === todayStr());
+      if (hi3 >= 0) state.hot.history[hi3] = snap3; else state.hot.history.push(snap3);
       saveAll();
+      if (btn) { btn.disabled = false; btn.textContent = btn.dataset.orig || "🔄 重新生成今日简报"; }
+      hotToast("已刷新今日简报 ✓");
     };
-    $("#hotRegenerate").addEventListener("click", refreshBrief);
-    $("#hotRefresh").addEventListener("click", refreshBrief);
+    $("#hotRegenerate").addEventListener("click", (e) => refreshBrief(e.currentTarget));
+    $("#hotRefresh").addEventListener("click", (e) => refreshBrief(e.currentTarget));
     $("#hotHistoryBtn").addEventListener("click", () => {
       const box = $("#hotHistory");
-      if (box) box.style.display = (box.style.display === "none") ? "block" : "none";
+      if (!box) return;
+      if (box.dataset.open === "1") { box.style.display = "none"; box.dataset.open = "0"; return; }
+      const snaps = (state.hot.history || []).slice(-3).reverse();
+      box.innerHTML = snaps.map((s) => '<div class="hot-hist-day"><div class="hot-hist-date">📅 ' + s.date + '</div>' + (s.topics || []).map((t) => '<div class="hot-hist-topic">' + t.emoji + ' ' + escapeHtml(t.first || '') + '</div>').join('') + '</div>').join('') || '<div class="empty-hint">暂无记录</div>';
+      box.style.display = "block"; box.dataset.open = "1";
     });
+    const initHist = $("#hotHistory");
+    if (initHist) { initHist.style.display = "none"; initHist.dataset.open = "0"; }
   }
   const bakeVideoModal = $("#bakeVideoModal");
   let currentBakeName = null;
@@ -2213,7 +2248,8 @@
       : '<div class="bp-stat"><span>暂无数据</span><b>—</b></div>';
 
     $("#bpChart").innerHTML = recs.length >= 2 ? drawBpChart(recs) : "";
-    $("#bpMonthChart").innerHTML = drawBpMonthChart(state.bp.records.slice());
+    const bpMonthEl = $("#bpMonthChart");
+    if (bpMonthEl) bpMonthEl.innerHTML = drawBpMonthChart(state.bp.records.slice());
 
     if (!recs.length) { list.innerHTML = ""; empty.style.display = "block"; }
     else {
