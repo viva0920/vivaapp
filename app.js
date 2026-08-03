@@ -2812,6 +2812,7 @@
   function stickerSvg(kind) { return kind === "rabbit" ? STICKER_RABBIT : kind === "cat" ? STICKER_CAT : ""; }
 
   let dailyScreen = "cover";
+  let monthbookYm = monthStr();
   let readerYm = monthStr();
   let readerIdx = 0;
   let editorId = null;
@@ -2835,13 +2836,14 @@
 
   function showDailyScreen(name) {
     dailyScreen = name;
-    ["cover", "reader", "editor", "overview"].forEach((s) => {
+    ["cover", "monthbook", "reader", "editor", "overview"].forEach((s) => {
       const el = $("#daily" + s.charAt(0).toUpperCase() + s.slice(1));
       if (el) el.classList.toggle("active", s === name);
     });
     const fab = $("#dailyAddBtn");
-    if (fab) fab.classList.toggle("hidden", !(name === "cover" || name === "reader"));
+    if (fab) fab.classList.toggle("hidden", !(name === "cover" || name === "monthbook" || name === "reader"));
     if (name === "cover") renderCover();
+    else if (name === "monthbook") renderMonthBook();
     else if (name === "reader") renderReader();
     else if (name === "overview") renderOverview();
   }
@@ -2850,7 +2852,8 @@
     const ym = monthStr();
     const cm = $("#coverMonth");
     if (cm && !cm.value) cm.value = ym;
-    buildCoverCalendar(cm && cm.value ? cm.value : ym);
+    monthbookYm = cm && cm.value ? cm.value : ym;
+    buildCoverCalendar(monthbookYm);
   }
   function buildCoverCalendar(ym) {
     dailyNorm();
@@ -2873,6 +2876,51 @@
       cells += '<b class="' + (ds === today ? "today" : (has ? "has" : "")) + '">' + d + "</b>";
     }
     cal.innerHTML = '<div class="cover-cal-head">' + y + '年' + m + '月</div><div class="cover-cal-grid">' + head + cells + '</div>';
+  }
+
+  function renderMonthBook() {
+    const ym = monthbookYm;
+    const parts = ym.split("-");
+    const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+    const title = $("#monthbookTitle");
+    if (title) title.textContent = y + "年" + m + "月";
+    const no = $("#monthbookNo");
+    if (no) no.textContent = "month / " + String(m).padStart(2, "0");
+    const entries = dailyEntriesOfMonth(ym);
+    const wrap = $("#monthbookEntries");
+    const empty = $("#monthbookEmpty");
+    const desk = $("#monthbookDesk");
+    const bottom = $("#monthbookBottom");
+    if (!entries.length) {
+      if (wrap) wrap.innerHTML = "";
+      if (empty) empty.style.display = "block";
+      if (desk) desk.style.display = "none";
+      if (bottom) bottom.style.display = "none";
+      return;
+    }
+    if (empty) empty.style.display = "none";
+    if (desk) desk.style.display = "flex";
+    if (bottom) bottom.style.display = "flex";
+    if (!wrap) return;
+    wrap.innerHTML = entries.map((e, i) => {
+      const dt = new Date(e.date + "T00:00:00");
+      const wd = ["日", "一", "二", "三", "四", "五", "六"][dt.getDay()];
+      const mood = DAILY_MOODS.find((x) => x.key === e.mood);
+      const imgs = (e.images || []).map((src) => '<img src="' + src + '" />').join("");
+      const sticker = stickerSvg(e.sticker);
+      return '<div class="monthbook-entry" data-idx="' + i + '">' +
+        '<div class="monthbook-entry-date">' + (parseInt(e.date.split("-")[1], 10)) + "/" + (parseInt(e.date.split("-")[2], 10)) +
+        ' <span class="monthbook-entry-mood">' + (mood ? mood.label : "") + '</span></div>' +
+        '<div class="monthbook-entry-text">' + escapeHtml(e.text || "") + '</div>' +
+        (imgs ? '<div class="monthbook-entry-media">' + imgs + '</div>' : "") +
+        (sticker ? '<div class="monthbook-entry-sticker">' + sticker + '</div>' : "") +
+        '</div>';
+    }).join("");
+    $$(".monthbook-entry", wrap).forEach((el) => el.addEventListener("click", () => {
+      readerIdx = parseInt(el.dataset.idx, 10);
+      readerYm = ym;
+      showDailyScreen("reader");
+    }));
   }
 
   function renderReader() {
@@ -2951,8 +2999,10 @@
 
   function renderOverview() {
     const ym = readerYm;
+    const op = ym.split("-");
+    const oy = parseInt(op[0], 10), om = parseInt(op[1], 10);
     const title = $("#ovTitle");
-    if (title) title.textContent = "📚 " + ym.replace("-", "年") + "月 概览";
+    if (title) title.textContent = "📚 " + oy + "年" + om + "月 概览";
     const grid = $("#ovGrid");
     const empty = $("#ovEmpty");
     if (!grid) return;
@@ -2966,6 +3016,8 @@
     }).join("");
     $$(".ov-card", grid).forEach((c) => c.addEventListener("click", () => {
       readerIdx = parseInt(c.dataset.idx, 10);
+      readerYm = ym;
+      monthbookYm = ym;
       showDailyScreen("reader");
     }));
   }
@@ -3069,10 +3121,11 @@
       state.daily.entries.push({ id: uid(), date, time, text, mood, sticker: editorSticker, images: editorPendingImages.slice(), createdAt: Date.now(), updatedAt: Date.now() });
     }
     saveAll();
-    readerYm = date.slice(0, 7);
+    monthbookYm = date.slice(0, 7);
+    readerYm = monthbookYm;
     readerIdx = dailyEntriesOfMonth(readerYm).length - 1;
     if (readerIdx < 0) readerIdx = 0;
-    showDailyScreen("reader");
+    showDailyScreen("monthbook");
   }
   function deleteEntry() {
     if (!editorId) return;
@@ -3080,29 +3133,34 @@
     state.daily.entries = state.daily.entries.filter((x) => x.id !== editorId);
     saveAll();
     editorId = null;
-    showDailyScreen("reader");
+    showDailyScreen("monthbook");
   }
 
   // ---- 封面 / 阅览 / 概览 / 编辑 事件绑定 ----
-  $("#coverOpenBtn").addEventListener("click", () => { const cm = $("#coverMonth"); readerYm = (cm && cm.value) || monthStr(); readerIdx = 0; showDailyScreen("reader"); });
-  $("#coverMonth").addEventListener("change", () => { const cm = $("#coverMonth"); if (cm) buildCoverCalendar(cm.value || monthStr()); });
+  $("#coverOpenBtn").addEventListener("click", () => { const cm = $("#coverMonth"); monthbookYm = (cm && cm.value) || monthStr(); readerIdx = 0; showDailyScreen("monthbook"); });
+  $("#coverMonth").addEventListener("change", () => { const cm = $("#coverMonth"); if (cm) { monthbookYm = cm.value || monthStr(); buildCoverCalendar(monthbookYm); } });
   $("#coverNewBtn").addEventListener("click", () => { const cm = $("#coverMonth"); openEditor({ date: defaultNewDate((cm && cm.value) || monthStr()) }); });
-  $("#readerBack").addEventListener("click", () => showDailyScreen("cover"));
+  $("#readerBack").addEventListener("click", () => showDailyScreen("monthbook"));
   $("#readerOverview").addEventListener("click", () => showDailyScreen("overview"));
-  $("#readerMonth").addEventListener("change", () => { const rm = $("#readerMonth"); readerYm = (rm && rm.value) || monthStr(); readerIdx = 0; renderReader(); });
+  $("#readerMonth").addEventListener("change", () => { const rm = $("#readerMonth"); readerYm = (rm && rm.value) || monthStr(); monthbookYm = readerYm; readerIdx = 0; renderReader(); });
   $("#readerEdit").addEventListener("click", () => { const e = dailyEntriesOfMonth(readerYm)[readerIdx]; if (e) openEditor({ id: e.id }); });
   $("#readerAdd").addEventListener("click", () => openEditor({ date: defaultNewDate(readerYm) }));
   $("#readerEmptyNew").addEventListener("click", () => openEditor({ date: defaultNewDate(readerYm) }));
   $("#bookPrev").addEventListener("click", () => flipReader(-1));
   $("#bookNext").addEventListener("click", () => flipReader(1));
-  $("#editorBack").addEventListener("click", () => showDailyScreen("reader"));
+  $("#monthbookBack").addEventListener("click", () => showDailyScreen("cover"));
+  $("#monthbookOverview").addEventListener("click", () => showDailyScreen("overview"));
+  $("#monthbookFlip").addEventListener("click", () => { readerYm = monthbookYm; readerIdx = 0; showDailyScreen("reader"); });
+  $("#monthbookAdd").addEventListener("click", () => openEditor({ date: defaultNewDate(monthbookYm) }));
+  $("#monthbookEmptyNew").addEventListener("click", () => openEditor({ date: defaultNewDate(monthbookYm) }));
+  $("#editorBack").addEventListener("click", () => showDailyScreen("monthbook"));
   $("#editorSave").addEventListener("click", saveEntry);
   $("#editorDelete").addEventListener("click", deleteEntry);
   $("#editorCamera").addEventListener("change", () => handleEditorFile($("#editorCamera")));
   $("#editorGallery").addEventListener("change", () => handleEditorFile($("#editorGallery")));
   $$(".sticker-opt").forEach((b) => b.addEventListener("click", () => { editorSticker = b.dataset.sticker; renderStickerPreview(); }));
-  $("#ovBack").addEventListener("click", () => showDailyScreen("reader"));
-  $("#dailyAddBtn").addEventListener("click", () => openEditor({ date: defaultNewDate(monthStr()) }));
+  $("#ovBack").addEventListener("click", () => showDailyScreen("monthbook"));
+  $("#dailyAddBtn").addEventListener("click", () => openEditor({ date: defaultNewDate(dailyScreen === "monthbook" ? monthbookYm : monthStr()) }));
   bindBookSwipe();
 
   /* =========================================================
