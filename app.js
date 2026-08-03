@@ -76,6 +76,7 @@
     hot: store.get("wb_hot", null),
     shopping: store.get("wb_shopping", []),
     bp: store.get("wb_bp", null),
+    exLibrary: store.get("wb_exlib", []),
     currentMonth: monthStr(),
     chartType: "expense",
     recType: "expense",
@@ -97,6 +98,7 @@
     store.set("wb_shopping", state.shopping);
     store.set("wb_hot", state.hot);
     store.set("wb_bp", state.bp);
+    store.set("wb_exlib", state.exLibrary);
   };
 
   /* =========================================================
@@ -361,6 +363,7 @@
     foodDate: $("#foodDate"), foodGrid: $("#foodGrid"), foodPhoto: $("#foodPhoto"),
     weekPlan: $("#weekPlan"), weekToggle: $("#weekToggle"),
     planTotalKcal: $("#planTotalKcal"), planProtein: $("#planProtein"),
+    exLibList: $("#exLibList"),
   };
   const planDate = () => diet.foodDate.value || todayStr();
 
@@ -642,14 +645,22 @@
     ],
   };
   const EXERCISES = [
-    { name: "帕梅拉快乐燃脂", emoji: "🔥", min: 20, kw: "帕梅拉 快乐燃脂 20分钟" },
-    { name: "本草纲目毽子操", emoji: "💃", min: 30, kw: "本草纲目 毽子操 完整版" },
-    { name: "跳绳 HIIT", emoji: "🤾", min: 15, kw: "跳绳 HIIT 燃脂" },
-    { name: "瑜伽拉伸放松", emoji: "🧘", min: 20, kw: "瑜伽 拉伸 放松" },
-    { name: "腹部核心训练", emoji: "💪", min: 15, kw: "腹部 核心 训练 马甲线" },
-    { name: "跑步机快走", emoji: "🏃", min: 30, kw: "快走 有氧 减脂" },
-    { name: "开合跳燃脂操", emoji: "⭐", min: 12, kw: "开合跳 燃脂操" },
-    { name: "臀腿力量训练", emoji: "🍑", min: 25, kw: "臀腿 力量 训练" },
+    { name: "帕梅拉快乐燃脂", emoji: "🔥", min: 20, cat: "HIIT", kw: "帕梅拉 快乐燃脂 20分钟" },
+    { name: "本草纲目毽子操", emoji: "💃", min: 30, cat: "有氧", kw: "本草纲目 毽子操 完整版" },
+    { name: "跳绳 HIIT", emoji: "🤾", min: 15, cat: "HIIT", kw: "跳绳 HIIT 燃脂" },
+    { name: "瑜伽拉伸放松", emoji: "🧘", min: 20, cat: "拉伸", kw: "瑜伽 拉伸 放松" },
+    { name: "腹部核心训练", emoji: "💪", min: 15, cat: "力量", kw: "腹部 核心 训练 马甲线" },
+    { name: "跑步机快走", emoji: "🏃", min: 30, cat: "有氧", kw: "快走 有氧 减脂" },
+    { name: "开合跳燃脂操", emoji: "⭐", min: 12, cat: "HIIT", kw: "开合跳 燃脂操" },
+    { name: "臀腿力量训练", emoji: "🍑", min: 25, cat: "力量", kw: "臀腿 力量 训练" },
+    { name: "游泳", emoji: "🏊", min: 40, cat: "有氧", kw: "游泳 减脂 正确姿势" },
+    { name: "骑行", emoji: "🚴", min: 35, cat: "有氧", kw: "骑行 减脂 户外" },
+    { name: "波比跳", emoji: "🤸", min: 10, cat: "HIIT", kw: "波比跳 燃脂 新手" },
+    { name: "平板支撑", emoji: "🛡️", min: 5, cat: "力量", kw: "平板支撑 核心 训练" },
+    { name: "深蹲训练", emoji: "🏋️", min: 15, cat: "力量", kw: "深蹲 腿部 训练" },
+    { name: "普拉提", emoji: "🌿", min: 25, cat: "塑形", kw: "普拉提 核心 塑形" },
+    { name: "八段锦", emoji: "🧎", min: 15, cat: "拉伸", kw: "八段锦 养生 拉伸" },
+    { name: "舞蹈燃脂", emoji: "🪩", min: 30, cat: "有氧", kw: "舞蹈 燃脂 跟练" },
   ];
   const bili = (kw) => "https://search.bilibili.com/all?keyword=" + encodeURIComponent(kw);
 
@@ -752,9 +763,14 @@
       </div>`;
     }).join("");
 
-    const ex = pickDaily(EXERCISES, dateStr, 2);
+    const ex = pickDaily(EXERCISES, dateStr, 3);
     diet.exList.innerHTML = ex.map((e) => exCard(e, "ex:" + e.name, ci, false)).join("")
       + ci.customEx.map((c) => exCard(c, "exC:" + c.id, ci, true)).join("");
+
+    const lib = state.exLibrary || [];
+    diet.exLibList.innerHTML = lib.length
+      ? lib.map((item) => libCard(item, (ci.customEx || []).some((x) => x.id === item.id))).join("")
+      : '<div class="ex-lib-empty">还没有自定义运动，点上方「➕ 添加我的运动到项目库」新建一个，下次点一下就能加入今日 💡</div>';
 
     const allKeys = [
       ...SLOT_ORDER.map((slot) => "meal:" + slot + ":" + meals[slot].name),
@@ -820,20 +836,56 @@
         saveAll(); renderPlan(d);
       })
     );
+    $$("#exLibList .ex-lib-add").forEach((b) =>
+      b.addEventListener("click", () => {
+        const d = planDate();
+        const c = state.checkins[d] || (state.checkins[d] = { done: {}, customEx: [] });
+        if (!c.customEx) c.customEx = [];
+        const item = (state.exLibrary || []).find((x) => x.id === b.dataset.id);
+        if (item && !c.customEx.some((x) => x.id === item.id)) c.customEx.push(item);
+        saveAll(); renderPlan(d);
+      })
+    );
+    $$("#exLibList .ex-del").forEach((b) =>
+      b.addEventListener("click", () => {
+        state.exLibrary = (state.exLibrary || []).filter((x) => x.id !== b.dataset.id);
+        const d = planDate();
+        const c = state.checkins[d];
+        if (c && c.customEx) c.customEx = c.customEx.filter((x) => x.id !== b.dataset.id);
+        saveAll(); renderPlan(d);
+      })
+    );
   }
 
   function exCard(e, key, ci, isCustom) {
     const done = !!ci.done[key];
     const kw = e.kw || e.name + " 运动";
+    const tag = e.cat ? '<span class="ex-cat">' + escapeHtml(e.cat) + '</span>' : "";
     return `<div class="ex-card${done ? " done" : ""}">
       <button class="check-btn" data-key="${key}">${done ? "✓" : ""}</button>
       <div class="ex-emoji">${e.emoji || "🏃"}</div>
       <div class="ex-main">
-        <div class="ex-name">${escapeHtml(e.name)}</div>
+        <div class="ex-name">${escapeHtml(e.name)} ${tag}</div>
         <div class="ex-min">约 ${e.min} 分钟</div>
       </div>
-      ${isCustom ? `<button class="ex-del" data-id="${e.id}" title="删除">✕</button>` : ""}
+      ${isCustom ? `<button class="ex-del" data-id="${e.id}" title="从今日移除">✕</button>` : ""}
       <a class="ex-link" href="${bili(kw)}" target="_blank" rel="noopener">▶ 跟练</a>
+    </div>`;
+  }
+
+  function libCard(item, inToday) {
+    const kw = item.kw || item.name + " 运动";
+    const tag = item.cat ? '<span class="ex-cat">' + escapeHtml(item.cat) + '</span>' : "";
+    return `<div class="ex-lib-card">
+      <div class="ex-emoji">${item.emoji || "🏃"}</div>
+      <div class="ex-main">
+        <div class="ex-name">${escapeHtml(item.name)} ${tag}</div>
+        <div class="ex-min">约 ${item.min || 0} 分钟</div>
+      </div>
+      ${inToday
+        ? '<span class="ex-lib-added">✓ 已加入今日</span>'
+        : `<button class="ex-lib-add" data-id="${item.id}">＋ 加入今日</button>`}
+      <button class="ex-del" data-id="${item.id}" title="从项目库删除">✕</button>
     </div>`;
   }
 
@@ -844,11 +896,15 @@
   function renderWeekPlan(dateStr) {
     if (!diet.weekPlan) return;
     const base = new Date(dateStr + "T00:00:00");
+    const dow = base.getDay(); // 0=周日 .. 6=周六
+    const mondayOffset = (dow === 0 ? -6 : 1 - dow);
+    const monday = new Date(base); monday.setDate(base.getDate() + mondayOffset);
     const days = [];
-    for (let i = -3; i <= 3; i++) {
-      const d = new Date(base); d.setDate(base.getDate() + i);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
       days.push(formatDateLocal(d));
     }
+    const wdNames = ["日", "一", "二", "三", "四", "五", "六"];
     const html = days.map((d) => {
       const ci = state.checkins[d];
       let ms = ci && ci.meals ? ci.meals : getDefaultMeals(d);
@@ -856,14 +912,22 @@
       const active = d === dateStr ? " active" : "";
       const firstMeal = ms.breakfast && ms.breakfast.name ? ms.breakfast.name.slice(0, 6) : "";
       const ex = pickDaily(EXERCISES, d, 1)[0];
+      const wd = wdNames[new Date(d + "T00:00:00").getDay()];
       return `<div class="week-day${active}" data-date="${d}">
-        <div class="week-date">${d.slice(5)}</div>
-        <div class="week-kcal">${total}</div>
+        <div class="week-date">周${wd}</div>
+        <div class="week-kcal">${total}k</div>
         <div class="week-meal">${escapeHtml(firstMeal)}</div>
         <div class="week-ex">${ex.emoji}${escapeHtml(ex.name.slice(0, 4))}</div>
       </div>`;
     }).join("");
-    diet.weekPlan.innerHTML = '<div class="week-grid">' + html + '</div>';
+    diet.weekPlan.innerHTML = '<div class="week-hint">← 左右滑动查看整周 →</div><div class="week-grid">' + html + '</div>';
+    const grid = diet.weekPlan.querySelector(".week-grid");
+    const activeEl = diet.weekPlan.querySelector(".week-day.active");
+    if (grid && activeEl) {
+      const gr = grid.getBoundingClientRect();
+      const ar = activeEl.getBoundingClientRect();
+      grid.scrollLeft += (ar.left + ar.width / 2) - (gr.left + gr.width / 2);
+    }
     $$("#weekPlan .week-day").forEach((el) =>
       el.addEventListener("click", () => {
         const d = el.dataset.date;
@@ -1134,7 +1198,10 @@
     const d = planDate();
     const ci = state.checkins[d] || (state.checkins[d] = { done: {}, customEx: [] });
     if (!ci.customEx) ci.customEx = [];
-    ci.customEx.push({ id: uid(), name, emoji: "🏃", min });
+    if (!state.exLibrary) state.exLibrary = [];
+    const item = { id: uid(), name, emoji: "🏃", min, cat: "我的" };
+    if (!state.exLibrary.some((x) => x.name === name)) state.exLibrary.push(item);
+    if (!ci.customEx.some((x) => x.id === item.id)) ci.customEx.push(item);
     saveAll();
     $("#exNameInput").value = ""; $("#exMinInput").value = "";
     $("#exAddForm").classList.remove("show");
