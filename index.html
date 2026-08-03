@@ -168,15 +168,19 @@
 
         <div class="plan-card">
           <div class="plan-head">
-            <h2>📅 今日计划</h2>
-            <span id="planDate" class="plan-date"></span>
+            <div>
+              <h2>📅 今日饮食安排</h2>
+              <div class="plan-subtitle">约 <b id="planTotalKcal">—</b> kcal · 蛋白质 <b id="planProtein">—</b>g</div>
+            </div>
+            <button id="weekToggle" class="mini-btn week-btn">📆 本周</button>
           </div>
           <div class="plan-summary">
+            <span id="planDate" class="plan-date"></span>
             🔥 建议每日摄入 <b id="kcalTarget">—</b> kcal（缺口 500）· 今日打卡 <b id="planDone">0/0</b>
           </div>
 
-          <h3 class="plan-sub">🍽️ 减脂餐推荐</h3>
-          <div id="mealList" class="meal-list"></div>
+          <div id="weekPlan" class="week-plan" style="display:none"></div>
+          <div id="mealList" class="meal-grid"></div>
 
           <h3 class="plan-sub">🏃 运动推荐</h3>
           <div id="exList" class="ex-list"></div>
