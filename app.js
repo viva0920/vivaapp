@@ -359,40 +359,286 @@
     planDate: $("#planDate"), kcalTarget: $("#kcalTarget"),
     mealList: $("#mealList"), exList: $("#exList"), planDone: $("#planDone"),
     foodDate: $("#foodDate"), foodGrid: $("#foodGrid"), foodPhoto: $("#foodPhoto"),
+    weekPlan: $("#weekPlan"), weekToggle: $("#weekToggle"),
+    planTotalKcal: $("#planTotalKcal"), planProtein: $("#planProtein"),
   };
   const planDate = () => diet.foodDate.value || todayStr();
 
   /* ----- 减脂餐 / 运动 内容池 ----- */
   const MEALS = {
     breakfast: [
-      { name: "燕麦蛋白杯", emoji: "🥣", kcal: 280, kw: "燕麦 高蛋白 早餐 做法" },
-      { name: "全麦鸡蛋三明治", emoji: "🥪", kcal: 320, kw: "全麦 鸡蛋 三明治 低卡" },
-      { name: "希腊酸奶莓果碗", emoji: "🍓", kcal: 240, kw: "希腊酸奶 莓果 早餐" },
-      { name: "紫薯奶昔", emoji: "🍠", kcal: 260, kw: "紫薯 奶昔 减脂" },
-      { name: "蔬菜鸡蛋饼", emoji: "🥞", kcal: 300, kw: "蔬菜 鸡蛋饼 低卡" },
-      { name: "牛油果吐司", emoji: "🥑", kcal: 330, kw: "牛油果 全麦吐司" },
+      {
+        name: "蔬菜鸡蛋饼", emoji: "🥞", slot: "breakfast", slotLabel: "早餐", kcal: 260, minutes: 12,
+        tags: ["低脂", "高蛋白", "蔬菜多"], protein: 18, carbs: 22, fat: 10,
+        ingredients: [{ name: "鸡蛋", amount: "2个" }, { name: "西葫芦", amount: "100g" }, { name: "胡萝卜", amount: "30g" }, { name: "全麦粉", amount: "10g" }],
+        steps: [
+          { emoji: "🥒", text: "西葫芦、胡萝卜擦细丝，加一点点盐腌3分钟，挤干水分" },
+          { emoji: "🥚", text: "把鸡蛋打散，加入全麦粉和挤干的蔬菜丝拌匀" },
+          { emoji: "🍳", text: "平底锅刷少许油，倒入蛋糊摊成薄饼，小火煎至两面金黄" }
+        ],
+        tips: "蔬菜丝挤掉水分饼更脆不散。",
+        kw: "蔬菜鸡蛋饼 低卡 减脂"
+      },
+      {
+        name: "燕麦蛋白杯", emoji: "🥣", slot: "breakfast", slotLabel: "早餐", kcal: 280, minutes: 5,
+        tags: ["高纤", "高蛋白", "快手"], protein: 22, carbs: 35, fat: 6,
+        ingredients: [{ name: "即食燕麦", amount: "40g" }, { name: "牛奶", amount: "200ml" }, { name: "蛋白粉", amount: "15g" }, { name: "香蕉", amount: "半根" }],
+        steps: [
+          { emoji: "🥣", text: "即食燕麦加牛奶微波炉加热1分钟" },
+          { emoji: "🍌", text: "香蕉切片铺在燕麦上" },
+          { emoji: "🥄", text: "加入蛋白粉搅拌均匀即可" }
+        ],
+        tips: "选无糖即食燕麦，蛋白粉可换希腊酸奶。",
+        kw: "燕麦蛋白杯 减脂早餐"
+      },
+      {
+        name: "全麦鸡蛋三明治", emoji: "🥪", slot: "breakfast", slotLabel: "早餐", kcal: 320, minutes: 10,
+        tags: ["均衡", "饱腹感强"], protein: 20, carbs: 38, fat: 9,
+        ingredients: [{ name: "全麦吐司", amount: "2片" }, { name: "鸡蛋", amount: "1个" }, { name: "生菜", amount: "2片" }, { name: "番茄", amount: "2片" }, { name: "低脂芝士", amount: "1片" }],
+        steps: [
+          { emoji: "🍳", text: "鸡蛋煎成荷包蛋或水煮切片" },
+          { emoji: "🍞", text: "全麦吐司轻烤一下更香" },
+          { emoji: "🥪", text: "依次放生菜、番茄、鸡蛋、芝士，盖上另一片吐司" }
+        ],
+        tips: "芝士选低脂款，控制钠摄入。",
+        kw: "全麦鸡蛋三明治 低卡"
+      },
+      {
+        name: "希腊酸奶莓果碗", emoji: "🍓", slot: "breakfast", slotLabel: "早餐", kcal: 240, minutes: 3,
+        tags: ["低糖", "高蛋白", "抗氧化"], protein: 18, carbs: 28, fat: 5,
+        ingredients: [{ name: "希腊酸奶", amount: "150g" }, { name: "蓝莓", amount: "30g" }, { name: "草莓", amount: "2颗" }, { name: "奇亚籽", amount: "5g" }],
+        steps: [
+          { emoji: "🥣", text: "希腊酸奶倒入碗中" },
+          { emoji: "🫐", text: "蓝莓、草莓洗净切块摆上" },
+          { emoji: "✨", text: "撒上奇亚籽，冷藏10分钟口感更佳" }
+        ],
+        tips: "希腊酸奶选无糖版，蛋白质更高。",
+        kw: "希腊酸奶莓果碗 减脂"
+      },
+      {
+        name: "紫薯奶昔", emoji: "🍠", slot: "breakfast", slotLabel: "早餐", kcal: 260, minutes: 5,
+        tags: ["高纤", "低脂"], protein: 12, carbs: 45, fat: 4,
+        ingredients: [{ name: "紫薯", amount: "100g" }, { name: "牛奶", amount: "200ml" }, { name: "蛋白粉", amount: "10g" }],
+        steps: [
+          { emoji: "🍠", text: "紫薯蒸熟去皮切块" },
+          { emoji: "🥛", text: "和牛奶、蛋白粉一起放入搅拌机" },
+          { emoji: "🥤", text: "搅打30秒至细腻" }
+        ],
+        tips: "紫薯本身有甜味，不需要额外加糖。",
+        kw: "紫薯奶昔 减脂早餐"
+      },
+      {
+        name: "牛油果吐司", emoji: "🥑", slot: "breakfast", slotLabel: "早餐", kcal: 330, minutes: 8,
+        tags: ["优质脂肪", "高蛋白"], protein: 16, carbs: 32, fat: 15,
+        ingredients: [{ name: "全麦吐司", amount: "1片" }, { name: "牛油果", amount: "半个" }, { name: "水煮蛋", amount: "1个" }, { name: "黑胡椒", amount: "少许" }],
+        steps: [
+          { emoji: "🍞", text: "全麦吐司烤至微脆" },
+          { emoji: "🥑", text: "牛油果捣成泥，均匀涂抹在吐司上" },
+          { emoji: "🥚", text: "放上切片水煮蛋，撒黑胡椒" }
+        ],
+        tips: "牛油果脂肪虽健康，但热量高，控制在半个。",
+        kw: "牛油果吐司 减脂"
+      },
     ],
     lunch: [
-      { name: "鸡胸蔬菜沙拉", emoji: "🥗", kcal: 360, kw: "鸡胸肉 沙拉 减脂" },
-      { name: "糙米饭+清蒸鱼", emoji: "🐟", kcal: 420, kw: "糙米 清蒸鱼 减脂餐" },
-      { name: "荞麦面鸡丝", emoji: "🍜", kcal: 390, kw: "荞麦面 鸡丝 低卡" },
-      { name: "虾仁西兰花", emoji: "🦐", kcal: 340, kw: "虾仁 西兰花 减脂" },
-      { name: "牛肉藜麦碗", emoji: "🥩", kcal: 430, kw: "牛肉 藜麦 健身餐" },
-      { name: "豆腐菌菇汤饭", emoji: "🍲", kcal: 350, kw: "豆腐 菌菇 低卡" },
+      {
+        name: "鸡胸蔬菜沙拉", emoji: "🥗", slot: "lunch", slotLabel: "午餐", kcal: 360, minutes: 15,
+        tags: ["低脂", "高蛋白"], protein: 38, carbs: 18, fat: 12,
+        ingredients: [{ name: "鸡胸肉", amount: "120g" }, { name: "生菜", amount: "80g" }, { name: "黄瓜", amount: "50g" }, { name: "圣女果", amount: "5颗" }, { name: "玉米粒", amount: "30g" }],
+        steps: [
+          { emoji: "🍗", text: "鸡胸肉加少许盐和黑胡椒，煎至两面金黄切条" },
+          { emoji: "🥬", text: "生菜洗净沥干，黄瓜切片，圣女果对半切" },
+          { emoji: "🥗", text: "所有食材混合，淋低脂油醋汁拌匀" }
+        ],
+        tips: "油醋汁可用生抽+柠檬汁+少许橄榄油自制。",
+        kw: "鸡胸蔬菜沙拉 减脂餐"
+      },
+      {
+        name: "番茄豆腐荞麦面", emoji: "🍜", slot: "lunch", slotLabel: "午餐", kcal: 400, minutes: 18,
+        tags: ["低GI", "高蛋白", "暖身"], protein: 28, carbs: 52, fat: 8,
+        ingredients: [{ name: "荞麦面", amount: "60g（干重）" }, { name: "嫩豆腐", amount: "120g" }, { name: "番茄", amount: "1个" }, { name: "鸡蛋", amount: "1个" }, { name: "菠菜", amount: "50g" }],
+        steps: [
+          { emoji: "🍅", text: "番茄切块炒出汁，加一碗水煮开" },
+          { emoji: "🍜", text: "放入荞麦面煮3分钟" },
+          { emoji: "🥚", text: "加入嫩豆腐块和菠菜，淋入蛋液搅散即可" }
+        ],
+        tips: "荞麦面低GI，饱腹感强，适合减脂期。",
+        kw: "番茄豆腐荞麦面 减脂"
+      },
+      {
+        name: "虾仁西兰花", emoji: "🦐", slot: "lunch", slotLabel: "午餐", kcal: 340, minutes: 15,
+        tags: ["低脂", "高蛋白"], protein: 34, carbs: 24, fat: 8,
+        ingredients: [{ name: "鲜虾仁", amount: "120g" }, { name: "西兰花", amount: "150g" }, { name: "糙米饭", amount: "80g" }, { name: "蒜末", amount: "少许" }],
+        steps: [
+          { emoji: "🥦", text: "西兰花切小朵焯水2分钟捞出" },
+          { emoji: "🦐", text: "虾仁用料酒、黑胡椒腌5分钟" },
+          { emoji: "🍳", text: "少油爆香蒜末，炒虾仁至变色，加西兰花炒匀" }
+        ],
+        tips: "米饭用糙米或杂粮饭，控量80g熟重。",
+        kw: "虾仁西兰花 减脂餐"
+      },
+      {
+        name: "牛肉藜麦碗", emoji: "🥩", slot: "lunch", slotLabel: "午餐", kcal: 430, minutes: 25,
+        tags: ["高蛋白", "高铁", "健身餐"], protein: 40, carbs: 38, fat: 14,
+        ingredients: [{ name: "牛里脊", amount: "100g" }, { name: "藜麦", amount: "50g（干重）" }, { name: "彩椒", amount: "50g" }, { name: "洋葱", amount: "30g" }],
+        steps: [
+          { emoji: "🌾", text: "藜麦淘洗后煮15分钟至出小尾巴" },
+          { emoji: "🥩", text: "牛里脊切条，用生抽、黑胡椒腌10分钟" },
+          { emoji: "🍳", text: "少油快炒牛肉，加彩椒洋葱翻炒3分钟" }
+        ],
+        tips: "牛肉选里脊或牛腱，脂肪更低。",
+        kw: "牛肉藜麦碗 减脂餐"
+      },
+      {
+        name: "清蒸鱼+糙米饭", emoji: "🐟", slot: "lunch", slotLabel: "午餐", kcal: 420, minutes: 30,
+        tags: ["低脂", "高蛋白", "清淡"], protein: 36, carbs: 48, fat: 8,
+        ingredients: [{ name: "鲈鱼", amount: "120g" }, { name: "糙米饭", amount: "100g" }, { name: "姜丝", amount: "少许" }, { name: "葱丝", amount: "少许" }],
+        steps: [
+          { emoji: "🐟", text: "鱼身划几刀，铺姜丝，水开蒸8分钟" },
+          { emoji: "🍚", text: "糙米饭提前煮好盛一碗" },
+          { emoji: "✨", text: "鱼出锅倒掉汤汁，淋少许蒸鱼豉油和葱丝" }
+        ],
+        tips: "蒸鱼的汤汁含油脂，倒掉再淋豉油更清爽。",
+        kw: "清蒸鱼 糙米 减脂餐"
+      },
+      {
+        name: "鸡丝荞麦面", emoji: "🍜", slot: "lunch", slotLabel: "午餐", kcal: 390, minutes: 20,
+        tags: ["高蛋白", "低GI"], protein: 34, carbs: 48, fat: 7,
+        ingredients: [{ name: "鸡胸肉", amount: "100g" }, { name: "荞麦面", amount: "60g（干重）" }, { name: "黄瓜", amount: "50g" }, { name: "胡萝卜", amount: "30g" }],
+        steps: [
+          { emoji: "🍗", text: "鸡胸肉煮熟撕成细丝" },
+          { emoji: "🍜", text: "荞麦面煮熟过凉水" },
+          { emoji: "🥒", text: "黄瓜、胡萝卜切丝，和鸡丝、面条一起加低脂酱汁拌匀" }
+        ],
+        tips: "酱汁可用生抽+醋+少许香油+蒜末。",
+        kw: "鸡丝荞麦面 减脂"
+      },
     ],
     dinner: [
-      { name: "番茄龙利鱼", emoji: "🍅", kcal: 300, kw: "番茄 龙利鱼 减脂" },
-      { name: "凉拌鸡丝黄瓜", emoji: "🥒", kcal: 280, kw: "鸡丝 黄瓜 凉拌 低卡" },
-      { name: "蒸蛋羹+时蔬", emoji: "🥚", kcal: 260, kw: "蒸蛋 时蔬 减脂晚餐" },
-      { name: "冬瓜排骨汤", emoji: "🍖", kcal: 320, kw: "冬瓜 排骨汤 清淡" },
-      { name: "烤蔬菜沙拉", emoji: "🥦", kcal: 270, kw: "烤蔬菜 沙拉 低卡" },
-      { name: "白灼虾+芦笋", emoji: "🍤", kcal: 290, kw: "白灼虾 芦笋 减脂" },
+      {
+        name: "番茄龙利鱼", emoji: "🍅", slot: "dinner", slotLabel: "晚餐", kcal: 300, minutes: 20,
+        tags: ["低脂", "高蛋白"], protein: 30, carbs: 18, fat: 8,
+        ingredients: [{ name: "龙利鱼", amount: "150g" }, { name: "番茄", amount: "2个" }, { name: "金针菇", amount: "50g" }, { name: "番茄酱", amount: "10g" }],
+        steps: [
+          { emoji: "🐟", text: "龙利鱼切块，用料酒、黑胡椒腌10分钟" },
+          { emoji: "🍅", text: "番茄切块炒出汁，加一碗水烧开" },
+          { emoji: "🍲", text: "放入鱼块和金针菇，煮5分钟至鱼熟透" }
+        ],
+        tips: "番茄酱选无添加糖款，只借番茄酸味。",
+        kw: "番茄龙利鱼 减脂晚餐"
+      },
+      {
+        name: "凉拌鸡丝黄瓜", emoji: "🥒", slot: "dinner", slotLabel: "晚餐", kcal: 280, minutes: 15,
+        tags: ["低脂", "高蛋白"], protein: 32, carbs: 10, fat: 9,
+        ingredients: [{ name: "鸡胸肉", amount: "120g" }, { name: "黄瓜", amount: "1根" }, { name: "蒜末", amount: "少许" }, { name: "小米辣", amount: "少许" }],
+        steps: [
+          { emoji: "🍗", text: "鸡胸肉煮熟撕成细丝" },
+          { emoji: "🥒", text: "黄瓜拍碎切块" },
+          { emoji: "🥢", text: "加蒜末、小米辣、生抽、醋、少许香油拌匀" }
+        ],
+        tips: "小米辣提味，不爱辣可换香菜。",
+        kw: "凉拌鸡丝黄瓜 减脂"
+      },
+      {
+        name: "蒸蛋羹+时蔬", emoji: "🥚", slot: "dinner", slotLabel: "晚餐", kcal: 260, minutes: 18,
+        tags: ["嫩滑", "低脂"], protein: 22, carbs: 12, fat: 12,
+        ingredients: [{ name: "鸡蛋", amount: "2个" }, { name: "温水", amount: "100ml" }, { name: "西兰花", amount: "80g" }, { name: "胡萝卜", amount: "30g" }],
+        steps: [
+          { emoji: "🥚", text: "鸡蛋打散加温水搅匀，过筛去气泡" },
+          { emoji: "🥦", text: "西兰花、胡萝卜焯水" },
+          { emoji: "🍳", text: "蛋液盖保鲜膜蒸10分钟，放蔬菜再蒸3分钟" }
+        ],
+        tips: "蛋液和温水比例 1:1.5，口感更嫩。",
+        kw: "蒸蛋羹 减脂晚餐"
+      },
+      {
+        name: "烤三文鱼芦笋", emoji: "🐟", slot: "dinner", slotLabel: "晚餐", kcal: 280, minutes: 22,
+        tags: ["优质脂肪", "高蛋白"], protein: 32, carbs: 6, fat: 14,
+        ingredients: [{ name: "三文鱼", amount: "100g" }, { name: "芦笋", amount: "100g" }, { name: "柠檬", amount: "2片" }, { name: "黑胡椒", amount: "少许" }],
+        steps: [
+          { emoji: "🐟", text: "三文鱼用黑胡椒、柠檬汁腌10分钟" },
+          { emoji: "🥬", text: "芦笋切段，和鱼一起摆入烤盘" },
+          { emoji: "🔥", text: "烤箱200度烤12-15分钟" }
+        ],
+        tips: "三文鱼提供优质Omega-3，减脂期友好。",
+        kw: "烤三文鱼芦笋 减脂"
+      },
+      {
+        name: "白灼虾+芦笋", emoji: "🍤", slot: "dinner", slotLabel: "晚餐", kcal: 290, minutes: 15,
+        tags: ["低脂", "高蛋白"], protein: 36, carbs: 8, fat: 6,
+        ingredients: [{ name: "鲜虾", amount: "150g" }, { name: "芦笋", amount: "100g" }, { name: "姜片", amount: "少许" }],
+        steps: [
+          { emoji: "🍤", text: "水加姜片烧开，放入虾煮至变红捞出" },
+          { emoji: "🥬", text: "芦笋焯水2分钟" },
+          { emoji: "🍽️", text: "蘸料用生抽+芥末或醋+蒜末" }
+        ],
+        tips: "虾壳保留煮更鲜，吃时剥皮。",
+        kw: "白灼虾 芦笋 减脂"
+      },
+      {
+        name: "烤蔬菜沙拉", emoji: "🥦", slot: "dinner", slotLabel: "晚餐", kcal: 270, minutes: 25,
+        tags: ["纯素", "低脂"], protein: 12, carbs: 32, fat: 10,
+        ingredients: [{ name: "西兰花", amount: "100g" }, { name: "南瓜", amount: "80g" }, { name: "口蘑", amount: "50g" }, { name: "鹰嘴豆", amount: "30g" }],
+        steps: [
+          { emoji: "🥦", text: "蔬菜洗净切块，喷少许油" },
+          { emoji: "🧂", text: "撒盐、黑胡椒、蒜粉拌匀" },
+          { emoji: "🔥", text: "烤箱200度烤18分钟" }
+        ],
+        tips: "鹰嘴豆提前煮熟或买即食罐装，增加蛋白质。",
+        kw: "烤蔬菜沙拉 减脂"
+      },
     ],
     snack: [
-      { name: "原味坚果一小把", emoji: "🥜", kcal: 120, kw: "坚果 健康零食" },
-      { name: "苹果+酸奶", emoji: "🍎", kcal: 150, kw: "苹果 酸奶 加餐" },
-      { name: "水煮蛋一个", emoji: "🥚", kcal: 80, kw: "水煮蛋 蛋白" },
-      { name: "黄瓜/小番茄", emoji: "🍅", kcal: 60, kw: "黄瓜 小番茄 零卡" },
+      {
+        name: "原味杏仁一小把", emoji: "🥜", slot: "snack", slotLabel: "加餐", kcal: 120, minutes: 1,
+        tags: ["健康脂肪", "饱腹"], protein: 4, carbs: 4, fat: 10,
+        ingredients: [{ name: "原味巴旦木", amount: "15g（约10颗）" }],
+        steps: [{ emoji: "🥜", text: "直接吃，细嚼慢咽增加饱腹感" }],
+        tips: "坚果热量高，15g 足够，选原味无添加。",
+        kw: "杏仁 健康零食 减脂"
+      },
+      {
+        name: "水煮蛋一个", emoji: "🥚", slot: "snack", slotLabel: "加餐", kcal: 80, minutes: 5,
+        tags: ["高蛋白", "便携"], protein: 7, carbs: 1, fat: 5,
+        ingredients: [{ name: "鸡蛋", amount: "1个" }],
+        steps: [
+          { emoji: "💧", text: "鸡蛋冷水下锅" },
+          { emoji: "⏰", text: "水开后煮8分钟" },
+          { emoji: "🧊", text: "过凉水剥壳" }
+        ],
+        tips: "煮8分钟是全熟，蛋黄不噎。",
+        kw: "水煮蛋 减脂加餐"
+      },
+      {
+        name: "苹果+酸奶", emoji: "🍎", slot: "snack", slotLabel: "加餐", kcal: 150, minutes: 3,
+        tags: ["低卡", "助消化"], protein: 6, carbs: 28, fat: 2,
+        ingredients: [{ name: "苹果", amount: "1个（小）" }, { name: "无糖酸奶", amount: "100g" }],
+        steps: [
+          { emoji: "🍎", text: "苹果洗净切块" },
+          { emoji: "🥣", text: "蘸酸奶吃" }
+        ],
+        tips: "苹果连皮吃膳食纤维更多。",
+        kw: "苹果酸奶 减脂加餐"
+      },
+      {
+        name: "黄瓜小番茄", emoji: "🍅", slot: "snack", slotLabel: "加餐", kcal: 60, minutes: 1,
+        tags: ["超低卡", "解馋"], protein: 2, carbs: 12, fat: 0,
+        ingredients: [{ name: "黄瓜", amount: "半根" }, { name: "小番茄", amount: "8颗" }],
+        steps: [{ emoji: "🥒", text: "洗净切块，当零嘴吃" }],
+        tips: "嘴馋时首选，热量几乎可忽略。",
+        kw: "黄瓜 小番茄 减脂"
+      },
+      {
+        name: "蛋白粉奶昔", emoji: "🥤", slot: "snack", slotLabel: "加餐", kcal: 130, minutes: 2,
+        tags: ["高蛋白", "健身"], protein: 25, carbs: 6, fat: 2,
+        ingredients: [{ name: "乳清蛋白粉", amount: "25g" }, { name: "水", amount: "250ml" }],
+        steps: [
+          { emoji: "🥄", text: "蛋白粉加入摇摇杯" },
+          { emoji: "💧", text: "加水摇匀" }
+        ],
+        tips: "训练后30分钟内喝，补充蛋白质最佳。",
+        kw: "蛋白粉奶昔 减脂"
+      },
     ],
   };
   const EXERCISES = [
@@ -440,29 +686,69 @@
     return 1300; // 未完善信息时的通用减脂摄入
   }
 
+  const SLOT_LABELS = { breakfast: "早餐", lunch: "午餐", dinner: "晚餐", snack: "加餐" };
+  const SLOT_ORDER = ["breakfast", "lunch", "dinner", "snack"];
+
+  function getDefaultMeals(dateStr) {
+    const out = {};
+    SLOT_ORDER.forEach((slot) => {
+      const m = pickDaily(MEALS[slot], dateStr, 1)[0];
+      out[slot] = { ...m, slot, slotLabel: SLOT_LABELS[slot] };
+    });
+    return out;
+  }
+
   function renderPlan(dateStr) {
     diet.planDate.textContent = dateStr.slice(5);
     diet.kcalTarget.textContent = computeKcalTarget();
     const ci = state.checkins[dateStr] || (state.checkins[dateStr] = { done: {}, customEx: [] });
     if (!ci.customEx) ci.customEx = [];
+    if (!ci.meals || !ci.meals.breakfast) ci.meals = getDefaultMeals(dateStr);
+    const meals = ci.meals;
 
-    const meals = [
-      ...pickDaily(MEALS.breakfast, dateStr, 1).map((m) => ({ ...m, slot: "早餐" })),
-      ...pickDaily(MEALS.lunch, dateStr, 1).map((m) => ({ ...m, slot: "午餐" })),
-      ...pickDaily(MEALS.dinner, dateStr, 1).map((m) => ({ ...m, slot: "晚餐" })),
-      ...pickDaily(MEALS.snack, dateStr, 1).map((m) => ({ ...m, slot: "加餐" })),
-    ];
-    diet.mealList.innerHTML = meals.map((m) => {
-      const key = "meal:" + m.name;
+    let totalKcal = 0, totalP = 0, totalC = 0, totalF = 0;
+    SLOT_ORDER.forEach((slot) => {
+      const m = meals[slot];
+      totalKcal += m.kcal || 0;
+      totalP += m.protein || 0;
+      totalC += m.carbs || 0;
+      totalF += m.fat || 0;
+    });
+    if (diet.planTotalKcal) diet.planTotalKcal.textContent = totalKcal;
+    if (diet.planProtein) diet.planProtein.textContent = totalP;
+
+    diet.mealList.innerHTML = SLOT_ORDER.map((slot) => {
+      const m = meals[slot];
+      const key = "meal:" + slot + ":" + m.name;
       const done = !!ci.done[key];
-      return `<div class="meal-card${done ? " done" : ""}">
-        <button class="check-btn" data-key="${key}">${done ? "✓" : ""}</button>
-        <div class="meal-emoji">${m.emoji}</div>
-        <div class="meal-main">
-          <div class="meal-name">${m.slot} · ${escapeHtml(m.name)}</div>
-          <div class="meal-kcal">约 ${m.kcal} kcal</div>
+      const detailId = "meal-detail-" + slot + "-" + dateStr;
+      return `<div class="meal-card${done ? " done" : ""}" data-key="${key}">
+        <div class="meal-header">
+          <div class="meal-emoji">${m.emoji}</div>
+          <div class="meal-main">
+            <div class="meal-name">${m.slotLabel} · ${escapeHtml(m.name)}</div>
+            <div class="meal-tags">${(m.tags || []).map((t) => '<span class="meal-tag">' + escapeHtml(t) + '</span>').join("")}<span class="meal-tag time">🕒 ${m.minutes}分钟</span></div>
+          </div>
+          <div class="meal-kcal"><b>${m.kcal}</b><small>kcal</small></div>
         </div>
-        <a class="meal-link" href="${bili(m.kw + " 视频")}" target="_blank" rel="noopener">📺 视频</a>
+        <div class="meal-macro">蛋白质 ${m.protein}g · 碳水 ${m.carbs}g · 脂肪 ${m.fat}g</div>
+        <div class="meal-actions">
+          <button class="meal-toggle${done ? " checked" : ""}" data-key="${key}">${done ? "✅ 已完成" : "□ 完成"}</button>
+          <button class="meal-video" data-kw="${escapeHtml(m.kw)}">▶ 看视频</button>
+          <button class="meal-detail-btn" data-slot="${slot}">👩‍🍳 做法</button>
+          <button class="meal-shuffle" data-slot="${slot}">🔄 换一份</button>
+        </div>
+        <div class="meal-detail" id="${detailId}" style="display:none">
+          <div class="meal-section">
+            <h4>🥗 食材</h4>
+            <div class="meal-ingredients">${(m.ingredients || []).map((ing) => '<span class="ing-tag">' + escapeHtml(ing.name) + " " + escapeHtml(ing.amount) + '</span>').join("")}</div>
+          </div>
+          <div class="meal-section">
+            <h4>👩‍🍳 做法</h4>
+            <div class="meal-steps">${(m.steps || []).map((s, i) => '<div class="step-row"><span class="step-emoji">' + s.emoji + '</span><span class="step-text"><b>步骤' + (i + 1) + '</b> ' + escapeHtml(s.text) + '</span></div>').join("")}</div>
+          </div>
+          ${m.tips ? '<div class="meal-tips">💡 <b>小贴士：</b>' + escapeHtml(m.tips) + '</div>' : ""}
+        </div>
       </div>`;
     }).join("");
 
@@ -471,14 +757,69 @@
       + ci.customEx.map((c) => exCard(c, "exC:" + c.id, ci, true)).join("");
 
     const allKeys = [
-      ...meals.map((m) => "meal:" + m.name),
+      ...SLOT_ORDER.map((slot) => "meal:" + slot + ":" + meals[slot].name),
       ...ex.map((e) => "ex:" + e.name),
       ...ci.customEx.map((c) => "exC:" + c.id),
     ];
     const doneCount = allKeys.filter((k) => ci.done[k]).length;
     diet.planDone.textContent = doneCount + "/" + allKeys.length;
 
-    bindPlanEvents(dateStr);
+    if (diet.weekPlan && diet.weekPlan.style.display !== "none") {
+      renderWeekPlan(dateStr);
+    }
+
+    $$("#mealList .meal-toggle").forEach((b) =>
+      b.addEventListener("click", () => {
+        const d = planDate();
+        const c = state.checkins[d] || (state.checkins[d] = { done: {}, customEx: [] });
+        c.done[b.dataset.key] = !c.done[b.dataset.key];
+        saveAll(); renderPlan(d);
+      })
+    );
+    $$("#mealList .meal-video").forEach((b) =>
+      b.addEventListener("click", () => {
+        window.open(bili(b.dataset.kw + " 视频"), "_blank", "noopener");
+      })
+    );
+    $$("#mealList .meal-detail-btn").forEach((b) =>
+      b.addEventListener("click", () => {
+        const box = $("#meal-detail-" + b.dataset.slot + "-" + dateStr);
+        if (!box) return;
+        const show = box.style.display === "none";
+        box.style.display = show ? "block" : "none";
+        b.textContent = show ? "👆 收起" : "👩‍🍳 做法";
+      })
+    );
+    $$("#mealList .meal-shuffle").forEach((b) =>
+      b.addEventListener("click", () => {
+        const d = planDate();
+        const c = state.checkins[d] || (state.checkins[d] = { done: {}, customEx: [] });
+        if (!c.meals || !c.meals.breakfast) c.meals = getDefaultMeals(d);
+        if (!c.shuffleCount) c.shuffleCount = {};
+        const slot = b.dataset.slot;
+        c.shuffleCount[slot] = (c.shuffleCount[slot] || 0) + 1;
+        const seed = d + ":" + slot + ":" + c.shuffleCount[slot];
+        const m = pickDaily(MEALS[slot], seed, 1)[0];
+        c.meals[slot] = { ...m, slot, slotLabel: SLOT_LABELS[slot] };
+        saveAll(); renderPlan(d);
+      })
+    );
+    $$("#exList .check-btn").forEach((b) =>
+      b.addEventListener("click", () => {
+        const d = planDate();
+        const c = state.checkins[d] || (state.checkins[d] = { done: {}, customEx: [] });
+        c.done[b.dataset.key] = !c.done[b.dataset.key];
+        saveAll(); renderPlan(d);
+      })
+    );
+    $$("#exList .ex-del").forEach((b) =>
+      b.addEventListener("click", () => {
+        const d = planDate();
+        const c = state.checkins[d];
+        if (c) c.customEx = c.customEx.filter((x) => x.id !== b.dataset.id);
+        saveAll(); renderPlan(d);
+      })
+    );
   }
 
   function exCard(e, key, ci, isCustom) {
@@ -496,21 +837,38 @@
     </div>`;
   }
 
-  function bindPlanEvents(dateStr) {
-    $$("#mealList .check-btn, #exList .check-btn").forEach((b) =>
-      b.addEventListener("click", () => {
-        const d = planDate();
-        const ci = state.checkins[d] || (state.checkins[d] = { done: {}, customEx: [] });
-        ci.done[b.dataset.key] = !ci.done[b.dataset.key];
-        saveAll(); renderPlan(d);
-      })
-    );
-    $$("#exList .ex-del").forEach((b) =>
-      b.addEventListener("click", () => {
-        const d = planDate();
-        const ci = state.checkins[d];
-        if (ci) ci.customEx = ci.customEx.filter((x) => x.id !== b.dataset.id);
-        saveAll(); renderPlan(d);
+  function formatDateLocal(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function renderWeekPlan(dateStr) {
+    if (!diet.weekPlan) return;
+    const base = new Date(dateStr + "T00:00:00");
+    const days = [];
+    for (let i = -3; i <= 3; i++) {
+      const d = new Date(base); d.setDate(base.getDate() + i);
+      days.push(formatDateLocal(d));
+    }
+    const html = days.map((d) => {
+      const ci = state.checkins[d];
+      let ms = ci && ci.meals ? ci.meals : getDefaultMeals(d);
+      const total = SLOT_ORDER.reduce((sum, slot) => sum + ((ms[slot] && ms[slot].kcal) || 0), 0);
+      const active = d === dateStr ? " active" : "";
+      const firstMeal = ms.breakfast && ms.breakfast.name ? ms.breakfast.name.slice(0, 6) : "";
+      const ex = pickDaily(EXERCISES, d, 1)[0];
+      return `<div class="week-day${active}" data-date="${d}">
+        <div class="week-date">${d.slice(5)}</div>
+        <div class="week-kcal">${total}</div>
+        <div class="week-meal">${escapeHtml(firstMeal)}</div>
+        <div class="week-ex">${ex.emoji}${escapeHtml(ex.name.slice(0, 4))}</div>
+      </div>`;
+    }).join("");
+    diet.weekPlan.innerHTML = '<div class="week-grid">' + html + '</div>';
+    $$("#weekPlan .week-day").forEach((el) =>
+      el.addEventListener("click", () => {
+        const d = el.dataset.date;
+        if (diet.foodDate) diet.foodDate.value = d;
+        renderPlan(d);
       })
     );
   }
@@ -2368,6 +2726,16 @@
   renderDiet();
   renderPlan(planDate());
   renderFood(planDate());
+
+  if (diet.weekToggle && diet.weekPlan) {
+    diet.weekToggle.addEventListener("click", () => {
+      const shown = diet.weekPlan.style.display !== "none";
+      diet.weekPlan.style.display = shown ? "none" : "block";
+      diet.weekToggle.textContent = shown ? "📆 本周" : "📅 隐藏";
+      if (!shown) renderWeekPlan(diet.foodDate.value || todayStr());
+    });
+  }
+
   renderBakeCats();
   renderBakeVideos();
   renderRecipes();
