@@ -75,6 +75,7 @@
     bakeNotes: store.get("wb_bake_notes", {}),
     hot: store.get("wb_hot", null),
     shopping: store.get("wb_shopping", []),
+    bp: store.get("wb_bp", null),
     currentMonth: monthStr(),
     chartType: "expense",
     recType: "expense",
@@ -95,6 +96,7 @@
     store.set("wb_bake_notes", state.bakeNotes);
     store.set("wb_shopping", state.shopping);
     store.set("wb_hot", state.hot);
+    store.set("wb_bp", state.bp);
   };
 
   /* =========================================================
@@ -1993,6 +1995,270 @@
   });
 
   /* =========================================================
+     血压健康模块
+     ========================================================= */
+  const BP_TAGS = ["空腹", "饭后", "晨起", "睡前", "运动后", "服药后", "随机测量"];
+  const BP_STATUS = { normal: "正常", border: "偏高·临界", high: "高血压·异常" };
+
+  function bpNorm() {
+    if (!state.bp || typeof state.bp !== "object") state.bp = {};
+    if (!Array.isArray(state.bp.records)) state.bp.records = [];
+    if (!state.bp.reminder || typeof state.bp.reminder !== "object")
+      state.bp.reminder = { morning: { on: false, time: "08:00" }, night: { on: false, time: "21:00" } };
+    if (!state.bp.reminder.morning) state.bp.reminder.morning = { on: false, time: "08:00" };
+    if (!state.bp.reminder.night) state.bp.reminder.night = { on: false, time: "21:00" };
+    if (typeof state.bp.filter !== "string") state.bp.filter = "all";
+    state.bp.search = state.bp.search || "";
+    state.bp.from = state.bp.from || "";
+    state.bp.to = state.bp.to || "";
+    if (typeof state.bp._editingId === "undefined") state.bp._editingId = null;
+    if (typeof state.bp._batch === "undefined") state.bp._batch = false;
+    if (!Array.isArray(state.bp._sel)) state.bp._sel = [];
+  }
+
+  function bpLevel(sbp, dbp) {
+    if (sbp >= 140 || dbp >= 90) return "high";
+    if (sbp >= 120 || dbp >= 80) return "border";
+    return "normal";
+  }
+
+  function bpFiltered() {
+    bpNorm();
+    let recs = state.bp.records.slice();
+    const f = state.bp.filter;
+    const today = todayStr();
+    if (f === "day") recs = recs.filter((r) => (r.dt || "").slice(0, 10) === today);
+    else if (f === "week") {
+      const cut = new Date(Date.now() - 6 * 864e5);
+      recs = recs.filter((r) => new Date(r.dt) >= cut);
+    } else if (f === "month") {
+      const ym = today.slice(0, 7);
+      recs = recs.filter((r) => (r.dt || "").slice(0, 7) === ym);
+    }
+    const kw = (state.bp.search || "").trim().toLowerCase();
+    if (kw) recs = recs.filter((r) =>
+      (r.note || "").toLowerCase().includes(kw) ||
+      (r.slot || "").toLowerCase().includes(kw) ||
+      (r.tags || []).join(" ").toLowerCase().includes(kw)
+    );
+    const from = state.bp.from, to = state.bp.to;
+    if (from) recs = recs.filter((r) => (r.dt || "").slice(0, 10) >= from);
+    if (to) recs = recs.filter((r) => (r.dt || "").slice(0, 10) <= to);
+    recs.sort((a, b) => (a.dt < b.dt ? 1 : a.dt > b.dt ? -1 : 0));
+    return recs;
+  }
+
+  function bpStats(recs) {
+    if (!recs.length) return null;
+    const sbp = recs.map((r) => r.sbp), dbp = recs.map((r) => r.dbp);
+    const hr = recs.map((r) => r.hr).filter((x) => typeof x === "number" && !isNaN(x));
+    const avg = (a) => Math.round(a.reduce((s, x) => s + x, 0) / a.length);
+    return {
+      count: recs.length,
+      sbpMax: Math.max.apply(null, sbp), sbpMin: Math.min.apply(null, sbp), sbpAvg: avg(sbp),
+      dbpMax: Math.max.apply(null, dbp), dbpMin: Math.min.apply(null, dbp), dbpAvg: avg(dbp),
+      hrAvg: hr.length ? avg(hr) : null,
+    };
+  }
+
+  function drawBpChart(recs) {
+    if (recs.length < 2) return "";
+    const W = 320, H = 200, padL = 34, padR = 12, padT = 16, padB = 26;
+    const all = recs.map((r) => r.sbp).concat(recs.map((r) => r.dbp));
+    let min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+    if (min === max) { min -= 6; max += 6; }
+    const span = max - min; min -= span * 0.15; max += span * 0.15;
+    const n = recs.length;
+    const x = (i) => padL + (i * (W - padL - padR)) / (n - 1);
+    const y = (v) => padT + (1 - (v - min) / (max - min)) * (H - padT - padB);
+    let svg = "";
+    for (let g = 0; g <= 3; g++) {
+      const gy = padT + (g * (H - padT - padB)) / 3;
+      const val = max - (g * (max - min)) / 3;
+      svg += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="#ffe1ec" stroke-width="1"/>';
+      svg += '<text x="' + (padL - 3) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#a08a98">' + Math.round(val) + '</text>';
+    }
+    const line = (key, color) => {
+      let s = '<polyline points="';
+      s += recs.map((r, i) => x(i) + "," + y(r[key])).join(" ");
+      s += '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      recs.forEach((r, i) => { s += '<circle cx="' + x(i) + '" cy="' + y(r[key]) + '" r="3" fill="#fff" stroke="' + color + '" stroke-width="2"/>'; });
+      return s;
+    };
+    svg += line("dbp", "#54a0ff");
+    svg += line("sbp", "#ff6f91");
+    const step = Math.ceil(n / 5);
+    recs.forEach((r, i) => {
+      if (i % step === 0 || i === n - 1)
+        svg += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9" fill="#a08a98">' + (r.dt || "").slice(5, 10) + '</text>';
+    });
+    svg += '<rect x="' + padL + '" y="' + (H - 1) + '" width="10" height="3" fill="#ff6f91"/><text x="' + (padL + 14) + '" y="' + (H + 1) + '" font-size="9" fill="#a08a98">高压</text>';
+    svg += '<rect x="' + (padL + 52) + '" y="' + (H - 1) + '" width="10" height="3" fill="#54a0ff"/><text x="' + (padL + 66) + '" y="' + (H + 1) + '" font-size="9" fill="#a08a98">低压</text>';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet">' + svg + '</svg>';
+  }
+
+  let bpRemTimers = [];
+  function scheduleBpReminders() {
+    bpRemTimers.forEach((t) => clearTimeout(t));
+    bpRemTimers = [];
+    bpNorm();
+    const rm = state.bp.reminder;
+    [["morning", rm.morning], ["night", rm.night]].forEach(([k, cfg]) => {
+      if (!cfg || !cfg.on) return;
+      const parts = (cfg.time || "08:00").split(":");
+      const hh = parseInt(parts[0], 10) || 0, mm = parseInt(parts[1], 10) || 0;
+      const now = new Date();
+      const next = new Date(now); next.setHours(hh, mm, 0, 0);
+      if (next <= now) next.setDate(next.getDate() + 1);
+      const ms = next - now;
+      const timer = setTimeout(() => {
+        bpToast(k === "morning" ? "🌅 晨起测量提醒" : "🌙 睡前测量提醒", "该测血压啦～记得记录一条 🩺");
+        scheduleBpReminders();
+      }, ms);
+      bpRemTimers.push(timer);
+    });
+  }
+
+  function bpToast(title, msg) {
+    let t = document.getElementById("bpToast");
+    if (!t) {
+      t = document.createElement("div");
+      t.id = "bpToast";
+      t.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;color:var(--ink);border:2px solid #ffc2dd;border-radius:16px;padding:12px 16px;box-shadow:0 6px 20px rgba(255,150,190,.35);max-width:88%;font-family:var(--font);display:none;";
+      document.body.appendChild(t);
+    }
+    t.innerHTML = '<div style="font-weight:800;color:var(--pink-deep)">' + escapeHtml(title) + '</div><div style="font-size:13px;margin-top:4px">' + escapeHtml(msg) + '</div>';
+    t.style.display = "block";
+    clearTimeout(t._h);
+    t._h = setTimeout(() => { t.style.display = "none"; }, 8000);
+  }
+
+  function renderBp() {
+    bpNorm();
+    const recs = bpFiltered();
+    const list = $("#bpList");
+    const empty = $("#bpEmpty");
+
+    $("#bpChips").innerHTML = [["all", "全部"], ["day", "今日"], ["week", "近7天"], ["month", "本月"]].map((p) =>
+      '<button class="bp-chip' + (state.bp.filter === p[0] ? " on" : "") + '" data-f="' + p[0] + '">' + p[1] + '</button>'
+    ).join("");
+
+    const st = bpStats(recs);
+    $("#bpStats").innerHTML = st
+      ? '<div class="bp-stat"><span>记录数</span><b>' + st.count + '</b></div>'
+        + '<div class="bp-stat"><span>高压</span><b>' + st.sbpMin + '~' + st.sbpMax + ' <i>(均' + st.sbpAvg + ')</i></b></div>'
+        + '<div class="bp-stat"><span>低压</span><b>' + st.dbpMin + '~' + st.dbpMax + ' <i>(均' + st.dbpAvg + ')</i></b></div>'
+        + '<div class="bp-stat"><span>平均心率</span><b>' + (st.hrAvg != null ? st.hrAvg : "—") + '</b></div>'
+      : '<div class="bp-stat"><span>暂无数据</span><b>—</b></div>';
+
+    $("#bpChart").innerHTML = recs.length >= 2 ? drawBpChart(recs) : "";
+
+    if (!recs.length) { list.innerHTML = ""; empty.style.display = "block"; }
+    else {
+      empty.style.display = "none";
+      list.innerHTML = recs.map((r) => {
+        const lv = bpLevel(r.sbp, r.dbp);
+        const sel = state.bp._sel.indexOf(r.id) >= 0;
+        let html = '<div class="bp-item bp-lv-' + lv + '">';
+        html += '<label class="bp-check" style="display:' + (state.bp._batch ? "flex" : "none") + '"><input type="checkbox" class="bp-sel" data-id="' + r.id + '"' + (sel ? " checked" : "") + '/></label>';
+        html += '<div class="bp-main">';
+        html += '<div class="bp-line1"><span class="bp-dt">' + escapeHtml((r.dt || "").replace("T", " ")) + '</span>';
+        html += '<span class="bp-slot">' + escapeHtml(r.slot || "") + '</span>';
+        html += '<span class="bp-badge bp-badge-' + lv + '">' + BP_STATUS[lv] + '</span></div>';
+        html += '<div class="bp-line2"><b class="bp-sbp">' + r.sbp + '</b>/<b class="bp-dbp">' + r.dbp + '</b> mmHg';
+        if (typeof r.hr === "number" && !isNaN(r.hr)) html += ' · ❤️ ' + r.hr;
+        html += '</div>';
+        if (r.tags && r.tags.length) html += '<div class="bp-tags-inline">' + r.tags.map((t) => '<span class="bp-tag">' + escapeHtml(t) + '</span>').join("") + '</div>';
+        if (r.note) html += '<div class="bp-note">' + escapeHtml(r.note) + '</div>';
+        html += '</div>';
+        html += '<div class="bp-ops"><button class="bp-edit" data-id="' + r.id + '">✏️</button><button class="bp-del" data-id="' + r.id + '">🗑️</button></div>';
+        html += '</div>';
+        return html;
+      }).join("");
+    }
+
+    const rm = state.bp.reminder;
+    $("#bpRmMorningOn").checked = !!rm.morning.on;
+    $("#bpRmMorning").value = rm.morning.time;
+    $("#bpRmNightOn").checked = !!rm.night.on;
+    $("#bpRmNight").value = rm.night.time;
+    $("#bpBatchBtn").textContent = state.bp._batch ? "✅ 确认删除选中" : "🗑️ 批量删除";
+
+    $$("#bpChips .bp-chip").forEach((c) => c.addEventListener("click", () => { state.bp.filter = c.dataset.f; saveAll(); renderBp(); }));
+    const search = $("#bpSearch"); if (search) { search.value = state.bp.search || ""; search.oninput = () => { state.bp.search = search.value; saveAll(); renderBp(); }; }
+    const from = $("#bpFrom"); if (from) { from.value = state.bp.from || ""; from.onchange = () => { state.bp.from = from.value; saveAll(); renderBp(); }; }
+    const to = $("#bpTo"); if (to) { to.value = state.bp.to || ""; to.onchange = () => { state.bp.to = to.value; saveAll(); renderBp(); }; }
+    $$(".bp-edit", list).forEach((b) => b.addEventListener("click", () => openBpModal(b.dataset.id)));
+    $$(".bp-del", list).forEach((b) => b.addEventListener("click", () => {
+      if (confirm("删除这条血压记录？")) { state.bp.records = state.bp.records.filter((x) => x.id !== b.dataset.id); saveAll(); renderBp(); }
+    }));
+    $$(".bp-sel", list).forEach((c) => c.addEventListener("change", () => {
+      state.bp._sel = state.bp._sel || [];
+      if (c.checked) state.bp._sel.push(c.dataset.id);
+      else state.bp._sel = state.bp._sel.filter((id) => id !== c.dataset.id);
+    }));
+    $("#bpRmMorningOn").onchange = (e) => { state.bp.reminder.morning.on = e.target.checked; saveAll(); scheduleBpReminders(); };
+    $("#bpRmMorning").onchange = (e) => { state.bp.reminder.morning.time = e.target.value; saveAll(); scheduleBpReminders(); };
+    $("#bpRmNightOn").onchange = (e) => { state.bp.reminder.night.on = e.target.checked; saveAll(); scheduleBpReminders(); };
+    $("#bpRmNight").onchange = (e) => { state.bp.reminder.night.time = e.target.value; saveAll(); scheduleBpReminders(); };
+  }
+
+  function openBpModal(id) {
+    bpNorm();
+    state.bp._editingId = id || null;
+    const r = id ? state.bp.records.find((x) => x.id === id) : null;
+    $("#bpModalTitle").textContent = id ? "✏️ 编辑血压" : "🩺 记血压";
+    const now = new Date();
+    const defDt = (r && r.dt) ? r.dt : todayStr() + "T" + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    $("#bpMDate").value = (defDt || "").slice(0, 10);
+    $("#bpMTime").value = (defDt || "").slice(11, 16) || "08:00";
+    $("#bpMSlot").value = (r && r.slot) || "晨起";
+    $("#bpMSbp").value = r ? r.sbp : "";
+    $("#bpMDbp").value = r ? r.dbp : "";
+    $("#bpMHR").value = (r && typeof r.hr === "number") ? r.hr : "";
+    $("#bpMNote").value = (r && r.note) || "";
+    $("#bpMTags").innerHTML = BP_TAGS.map((t) => {
+      const on = (r && r.tags && r.tags.indexOf(t) >= 0);
+      return '<button type="button" class="bp-tag-pick' + (on ? " on" : "") + '" data-t="' + t + '">' + t + '</button>';
+    }).join("");
+    $$("#bpMTags .bp-tag-pick").forEach((b) => b.addEventListener("click", () => b.classList.toggle("on")));
+    $("#bpModal").classList.add("show");
+  }
+
+  // 持久按钮只绑一次
+  $("#bpAddBtn").addEventListener("click", () => openBpModal(null));
+  $("#bpMCancel").addEventListener("click", () => { $("#bpModal").classList.remove("show"); state.bp._editingId = null; });
+  $("#bpMSave").addEventListener("click", () => {
+    bpNorm();
+    const sbp = parseInt($("#bpMSbp").value, 10);
+    const dbp = parseInt($("#bpMDbp").value, 10);
+    if (!(sbp > 0) || !(dbp > 0)) { alert("请填写收缩压和舒张压～"); return; }
+    const dt = ($("#bpMDate").value || todayStr()) + "T" + ($("#bpMTime").value || "08:00");
+    const tags = $$("#bpMTags .bp-tag-pick.on").map((b) => b.dataset.t);
+    const hrRaw = $("#bpMHR").value;
+    const hr = hrRaw === "" ? null : (parseInt(hrRaw, 10) || null);
+    const data = { dt, slot: $("#bpMSlot").value, sbp, dbp, hr, tags, note: $("#bpMNote").value.trim() };
+    if (state.bp._editingId) {
+      const r = state.bp.records.find((x) => x.id === state.bp._editingId);
+      if (r) Object.assign(r, data);
+    } else {
+      state.bp.records.push({ id: uid(), ...data });
+    }
+    saveAll(); $("#bpModal").classList.remove("show"); state.bp._editingId = null; renderBp();
+  });
+  $("#bpBatchBtn").addEventListener("click", () => {
+    bpNorm();
+    if (!state.bp._batch) { state.bp._batch = true; state.bp._sel = []; renderBp(); return; }
+    const sel = state.bp._sel || [];
+    if (!sel.length) { state.bp._batch = false; renderBp(); return; }
+    if (confirm("确定删除选中的 " + sel.length + " 条记录？")) {
+      state.bp.records = state.bp.records.filter((x) => sel.indexOf(x.id) < 0);
+      saveAll();
+    }
+    state.bp._batch = false; state.bp._sel = []; renderBp();
+  });
+
+  /* =========================================================
      初始化
      ========================================================= */
   els.dateInput.value = todayStr();
@@ -2008,6 +2274,8 @@
   renderBakeVideos();
   renderRecipes();
   renderHot(); // 渲染热点小报
+  renderBp(); // 渲染血压模块
+  scheduleBpReminders();
   saveAll(); // 持久化合并后的默认类别等
 
   // 点击遮罩关闭弹窗
@@ -2030,6 +2298,7 @@
     renderBakeVideos();
     renderRecipes();
     renderHot();
+    renderBp();
   }
 
   async function exportBackup() {
@@ -2053,6 +2322,7 @@
         bakeNotes: state.bakeNotes,
         hot: state.hot,
         shopping: state.shopping,
+        bp: state.bp,
       },
       photos,
     };
@@ -2087,6 +2357,7 @@
       if (s.bakeNotes && typeof s.bakeNotes === "object") state.bakeNotes = s.bakeNotes;
       if (s.hot && typeof s.hot === "object") state.hot = s.hot;
       if (Array.isArray(s.shopping)) state.shopping = s.shopping;
+      if (s.bp && typeof s.bp === "object") state.bp = s.bp;
       saveAll();
       try {
         await dbClearAll();

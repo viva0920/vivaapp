@@ -51,6 +51,10 @@
           <span class="nav-emoji">🔥</span>
           <span class="nav-label">热点</span>
         </button>
+        <button class="nav-item" data-module="bp">
+          <span class="nav-emoji">🩺</span>
+          <span class="nav-label">血压</span>
+        </button>
       </nav>
       <div class="sidebar-foot">💕 v1.0</div>
     </aside>
@@ -295,6 +299,39 @@
         <div class="hot-history" id="hotHistory" style="display:none"></div>
       </section>
 
+      <section id="module-bp" class="module">
+        <header class="module-head">
+          <h1>🩺 血压健康</h1>
+          <p class="subtitle">居家血压·心率常态化记录</p>
+        </header>
+
+        <div class="bp-bar">
+          <button id="bpAddBtn" class="hot-btn" style="flex:1;width:auto;background:linear-gradient(135deg,#7ec8a0,#54c7b3)">➕ 记一条血压</button>
+          <button id="bpBatchBtn" class="hot-btn" style="flex:1;width:auto;background:#fff0f6;color:var(--ink);border:2px solid #ffc2dd">🗑️ 批量删除</button>
+        </div>
+
+        <div class="bp-filters">
+          <div class="bp-chips" id="bpChips"></div>
+          <input type="search" id="bpSearch" class="bp-search" placeholder="搜索备注/标签…" />
+          <div class="bp-range">
+            <input type="date" id="bpFrom" class="bp-date" />
+            <span>至</span>
+            <input type="date" id="bpTo" class="bp-date" />
+          </div>
+        </div>
+
+        <div class="bp-stats" id="bpStats"></div>
+        <div class="bp-chart" id="bpChart"></div>
+        <div class="bp-list" id="bpList"></div>
+        <div class="bp-empty" id="bpEmpty" style="display:none">还没有血压记录，点上方「➕ 记一条血压」开始吧～</div>
+
+        <div class="bp-reminder">
+          <div class="bp-reminder-title">⏰ 测量提醒（页面打开时生效）</div>
+          <label class="bp-rem-row"><input type="checkbox" id="bpRmMorningOn" /> 晨起 <input type="time" id="bpRmMorning" value="08:00" /></label>
+          <label class="bp-rem-row"><input type="checkbox" id="bpRmNightOn" /> 睡前 <input type="time" id="bpRmNight" value="21:00" /></label>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -521,6 +558,41 @@
       <div class="modal-actions">
         <button id="shopClear" class="ghost-btn">🗑️ 清空</button>
         <button id="shopClose" class="primary-btn bake">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 血压记录弹窗 -->
+  <div id="bpModal" class="modal-mask">
+    <div class="modal">
+      <h3 id="bpModalTitle">🩺 记血压</h3>
+      <div class="field"><label>日期</label><input type="date" id="bpMDate" /></div>
+      <div class="field"><label>时间</label><input type="time" id="bpMTime" value="08:00" /></div>
+      <div class="field"><label>时段</label>
+        <select id="bpMSlot">
+          <option value="晨起">晨起</option>
+          <option value="空腹">空腹</option>
+          <option value="饭后">饭后</option>
+          <option value="上午">上午</option>
+          <option value="中午">中午</option>
+          <option value="下午">下午</option>
+          <option value="晚上">晚上</option>
+          <option value="睡前">睡前</option>
+          <option value="运动后">运动后</option>
+          <option value="服药后">服药后</option>
+          <option value="随机">随机测量</option>
+        </select>
+      </div>
+      <div class="field bp-bp-row">
+        <div><label>收缩压(高压)</label><input type="number" id="bpMSbp" min="40" max="300" placeholder="120" /></div>
+        <div><label>舒张压(低压)</label><input type="number" id="bpMDbp" min="20" max="200" placeholder="80" /></div>
+      </div>
+      <div class="field"><label>心率/脉搏 (可选)</label><input type="number" id="bpMHR" min="30" max="250" placeholder="72" /></div>
+      <div class="field"><label>状态标签</label><div id="bpMTags" class="bp-tags"></div></div>
+      <div class="field"><label>备注</label><textarea id="bpMNote" rows="2" placeholder="如 头晕、服药名、情绪…"></textarea></div>
+      <div class="modal-actions">
+        <button id="bpMCancel" class="ghost-btn">取消</button>
+        <button id="bpMSave" class="primary-btn diet">保存</button>
       </div>
     </div>
   </div>

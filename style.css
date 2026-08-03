@@ -546,3 +546,52 @@ body {
 .shop-item .si-name { flex: 1; min-width: 0; font-size: 14px; color: var(--ink); }
 .shop-item.done .si-name { text-decoration: line-through; color: var(--ink-soft); }
 .shop-item .si-del { background: none; border: none; color: #ff9ec6; font-size: 16px; cursor: pointer; flex: 0 0 auto; }
+
+  /* 血压健康模块 */
+  .bp-bar { display: flex; gap: 8px; margin: 12px 0; }
+  .bp-bar .hot-btn { margin: 0; }
+  .bp-filters { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .bp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .bp-chip { padding: 7px 14px; border-radius: 16px; background: #fff0f6; color: var(--ink); border: 2px solid #ffc2dd; font-family: var(--font); font-size: 14px; cursor: pointer; transition: all .15s; }
+  .bp-chip.on { background: linear-gradient(135deg, #ffc2dd, #ff9ec6); color: #fff; border-color: #ffd9ea; }
+  .bp-search { width: 100%; border: 2px solid #ffe1ec; border-radius: 12px; padding: 9px 12px; font-family: var(--font); font-size: 14px; box-sizing: border-box; }
+  .bp-range { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); flex-wrap: wrap; }
+  .bp-date { border: 2px solid #ffe1ec; border-radius: 10px; padding: 6px 8px; font-family: var(--font); font-size: 13px; }
+  .bp-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .bp-stat { background: #fff7fb; border: 1px solid #ffe1ec; border-radius: 12px; padding: 8px 10px; }
+  .bp-stat span { display: block; font-size: 11px; color: var(--ink-soft); }
+  .bp-stat b { font-size: 14px; color: var(--ink); }
+  .bp-stat b i { font-style: normal; font-size: 11px; color: var(--ink-soft); }
+  .bp-chart { background: #fff7fb; border: 1px solid #ffe1ec; border-radius: 14px; padding: 10px; margin-bottom: 12px; }
+  .bp-list { display: flex; flex-direction: column; gap: 8px; }
+  .bp-item { display: flex; align-items: flex-start; gap: 8px; background: #fff7fb; border: 1px solid #ffe1ec; border-left: 6px solid #7ec8a0; border-radius: 14px; padding: 10px 12px; }
+  .bp-item.bp-lv-border { border-left-color: #f5a623; background: #fffaf0; }
+  .bp-item.bp-lv-high { border-left-color: #ff6f91; background: #fff0f3; }
+  .bp-check { flex: 0 0 auto; display: none; align-items: center; }
+  .bp-main { flex: 1; min-width: 0; }
+  .bp-line1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .bp-dt { font-size: 13px; color: var(--ink); font-weight: 700; }
+  .bp-slot { font-size: 12px; color: var(--ink-soft); background: #fff; border: 1px solid #ffd9ea; border-radius: 10px; padding: 1px 8px; }
+  .bp-badge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+  .bp-badge-normal { background: #d8f5ec; color: #2f9e7e; }
+  .bp-badge-border { background: #fff1cf; color: #c47d00; }
+  .bp-badge-high { background: #ffd9e2; color: #e23757; }
+  .bp-line2 { font-size: 15px; color: var(--ink); margin-top: 4px; }
+  .bp-sbp, .bp-dbp { font-weight: 800; }
+  .bp-sbp { color: #ff6f91; }
+  .bp-dbp { color: #54a0ff; }
+  .bp-tags-inline { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .bp-tag { font-size: 11px; color: var(--ink-soft); background: #fff; border: 1px solid #ffd9ea; border-radius: 9px; padding: 1px 7px; }
+  .bp-note { font-size: 12px; color: var(--ink-soft); margin-top: 5px; line-height: 1.6; word-break: break-word; }
+  .bp-ops { flex: 0 0 auto; display: flex; flex-direction: column; gap: 6px; }
+  .bp-edit, .bp-del { border: none; background: #ffe1ec; color: #ff7eb0; border-radius: 50%; width: 28px; height: 28px; font-size: 13px; cursor: pointer; }
+  .bp-edit { background: #e7f6f1; color: #2f9e7e; }
+  .bp-empty { text-align: center; font-size: 13px; color: var(--ink-soft); padding: 20px 10px; }
+  .bp-reminder { margin-top: 14px; background: #fff7fb; border: 1px dashed #ffc2dd; border-radius: 14px; padding: 10px 12px; }
+  .bp-reminder-title { font-size: 13px; font-weight: 700; color: var(--pink-deep); margin-bottom: 8px; }
+  .bp-rem-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); margin-bottom: 6px; }
+  .bp-bp-row { display: flex; gap: 10px; }
+  .bp-bp-row > div { flex: 1; }
+  .bp-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bp-tag-pick { border: 1px solid #ffc2dd; background: #fff; color: var(--ink); border-radius: 12px; padding: 5px 10px; font-family: var(--font); font-size: 12px; cursor: pointer; }
+  .bp-tag-pick.on { background: linear-gradient(135deg, #ffc2dd, #ff9ec6); color: #fff; border-color: #ffd9ea; }
