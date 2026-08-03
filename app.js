@@ -1239,6 +1239,10 @@
   async function getHotCats(perCat, dateStr) {
     const rep = await fetchReport();
     if (rep && Array.isArray(rep.categories) && rep.categories.length) {
+      // 报告存在但日期不是今天 → 视为未每日刷新，回退「今日样例精选」（按日期确定性挑选，每天不同）
+      if (rep.date && rep.date !== dateStr) {
+        return { categories: genDigest(dateStr, perCat), trend: null, fromReport: false, stale: rep.date };
+      }
       return { categories: rep.categories, trend: rep.trend || null, fromReport: true };
     }
     return { categories: genDigest(dateStr, perCat), trend: null, fromReport: false };
@@ -1312,7 +1316,8 @@
     if (!state.hot.history.some((h) => h.date === dateStr)) {
       state.hot.history.push({ date: dateStr, ts: Date.now() });
     }
-    $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + dateStr + '】</div>' + renderHotBrief(trimmed);
+    const staleNote = (res.stale) ? '<div class="hot-stale-note">⚠️ 自动报告最近更新于 ' + res.stale + '，可能未按日刷新；以下为「今日样例精选」（按日期每天不同），仅供灵感参考。</div>' : '';
+    $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + dateStr + '】</div>' + staleNote + renderHotBrief(trimmed);
     $("#hotChips").innerHTML = HOT_CATS.map((c) => '<button class="hot-chip" data-key="' + c.key + '">' + c.emoji + " " + escapeHtml(c.name) + '</button>').join("");
     $("#hotHistory").innerHTML = (state.hot.history || []).slice(-3).map((h) => '<div class="hot-history-item">📅 ' + h.date + '</div>').join("");
     $("#hotTrend").innerHTML = res.trend ? renderHotTrendFromReport(res.trend, perCat) : renderHotTrend(trimmed, perCat);
@@ -1349,7 +1354,8 @@
         state.hot.perCat = v; saveAll();
         const r2 = await getHotCats(v, todayStr());
         const t2 = r2.categories.map((c) => ({ key: c.key, name: c.name, emoji: c.emoji, items: (c.items || []).slice(0, v) }));
-        $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + todayStr() + '】</div>' + renderHotBrief(t2);
+        const sn2 = (r2.stale) ? '<div class="hot-stale-note">⚠️ 自动报告最近更新于 ' + r2.stale + '，可能未按日刷新；以下为「今日样例精选」（按日期每天不同），仅供灵感参考。</div>' : '';
+        $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + todayStr() + '】</div>' + sn2 + renderHotBrief(t2);
         $("#hotTrend").innerHTML = r2.trend ? renderHotTrendFromReport(r2.trend, v) : renderHotTrend(t2, v);
       });
     }
@@ -1357,7 +1363,8 @@
       const v = (state.hot && state.hot.perCat) || 8;
       const r3 = await getHotCats(v, todayStr());
       const t3 = r3.categories.map((c) => ({ key: c.key, name: c.name, emoji: c.emoji, items: (c.items || []).slice(0, v) }));
-      $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + todayStr() + '】</div>' + renderHotBrief(t3);
+      const sn3 = (r3.stale) ? '<div class="hot-stale-note">⚠️ 自动报告最近更新于 ' + r3.stale + '，可能未按日刷新；以下为「今日样例精选」（按日期每天不同），仅供灵感参考。</div>' : '';
+      $("#hotBrief").innerHTML = '<div class="hot-digest-head">【今日抖音热点简报 | ' + todayStr() + '】</div>' + sn3 + renderHotBrief(t3);
       $("#hotTrend").innerHTML = r3.trend ? renderHotTrendFromReport(r3.trend, v) : renderHotTrend(t3, v);
       if (!state.hot.history.some((h) => h.date === todayStr())) state.hot.history.push({ date: todayStr(), ts: Date.now() });
       saveAll();
