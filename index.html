@@ -360,35 +360,117 @@
         </div>
       </section>
 
-      <!-- ===== 日常模块 ===== -->
+      <!-- ===== 日常手账本模块 ===== -->
       <section id="module-daily" class="module">
-        <header class="module-head">
-          <h1>📝 日常</h1>
-          <p class="subtitle">记录每天的小确幸 ✨</p>
-        </header>
-
-        <div class="daily-topbar">
-          <div class="daily-date-strip" id="dailyDateStrip"></div>
-          <button id="dailyBookBtn" class="daily-book-btn">📖 手账本</button>
+        <!-- ① 封面页 -->
+        <div class="daily-screen daily-cover active" id="dailyCover">
+          <div class="cover-book">
+            <div class="cover-ribbon">手账 · Journal</div>
+            <svg class="cover-cat" viewBox="0 0 140 140" aria-hidden="true">
+              <ellipse cx="70" cy="120" rx="46" ry="11" fill="#ffe3ee"/>
+              <path d="M40,108 C32,84 36,54 58,46 C72,40 86,46 96,60 C104,74 104,94 98,108 C92,118 82,120 70,120 C54,120 46,116 40,108 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3"/>
+              <path d="M58,46 C60,54 54,60 50,62 M82,46 C80,54 86,60 90,62" fill="none" stroke="#8a7f9a" stroke-width="2.6" stroke-linecap="round"/>
+              <path d="M40,48 C32,24 52,36 56,46 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M100,48 C108,24 88,36 84,46 Z" fill="#fff" stroke="#8a7f9a" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M42,46 C40,34 48,40 50,44 Z M98,46 C100,34 92,40 90,44 Z" fill="#ffd9ea"/>
+              <circle cx="54" cy="72" r="8" fill="#8a7f9a"/>
+              <circle cx="56" cy="69" r="3" fill="#fff"/>
+              <circle cx="86" cy="72" r="8" fill="#8a7f9a"/>
+              <circle cx="88" cy="69" r="3" fill="#fff"/>
+              <ellipse cx="44" cy="82" rx="6" ry="3.6" fill="#ffc2dd"/>
+              <ellipse cx="96" cy="82" rx="6" ry="3.6" fill="#ffc2dd"/>
+              <path d="M67,78 L73,78 L70,83 Z" fill="#ff9ec4"/>
+              <path d="M70,83 C65,90 60,85 60,82 M70,83 C75,90 80,85 80,82" fill="none" stroke="#8a7f9a" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M40,76 L26,74 M40,80 L26,82 M100,76 L114,74 M100,80 L114,82" fill="none" stroke="#8a7f9a" stroke-width="1.6" stroke-linecap="round" opacity="0.5"/>
+              <ellipse cx="56" cy="110" rx="7" ry="4.5" fill="#fff" stroke="#8a7f9a" stroke-width="2.6"/>
+              <ellipse cx="84" cy="110" rx="7" ry="4.5" fill="#fff" stroke="#8a7f9a" stroke-width="2.6"/>
+            </svg>
+            <div class="cover-title">我的手账本</div>
+            <div class="cover-sub">日系手绘 · 治愈日常</div>
+            <div class="cover-cal" id="coverCalendar"></div>
+            <div class="cover-controls">
+              <label class="cover-month-label">📅 选择月份</label>
+              <input type="month" id="coverMonth" class="journal-month-input" />
+            </div>
+            <div class="cover-btns">
+              <button class="cover-btn primary" id="coverOpenBtn">📖 打开当月手账本</button>
+              <button class="cover-btn" id="coverNewBtn">✏️ 新建手账记录</button>
+            </div>
+          </div>
         </div>
 
-        <div class="daily-list" id="dailyList"></div>
-        <div class="daily-empty" id="dailyEmpty" style="display:none">
-          <svg class="daily-empty-cat" viewBox="0 0 120 120" aria-hidden="true">
-            <circle cx="60" cy="66" r="36" fill="#fff" stroke="#7a6f8a" stroke-width="3"/>
-            <polygon points="32,44 24,16 50,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
-            <polygon points="88,44 96,16 70,34" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
-            <circle cx="48" cy="60" r="4" fill="#7a6f8a"/>
-            <circle cx="72" cy="60" r="4" fill="#7a6f8a"/>
-            <path d="M56,68 Q60,72 64,68" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/>
-            <ellipse cx="60" cy="88" rx="10" ry="6" fill="#ffd9ea"/>
-            <path d="M82,78 Q95,75 98,85 Q100,95 88,96 Q80,97 78,90" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M84,82 L84,92" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-          <p>今天还没有记录哦～<br/>点右下角 ✏️ 写下第一句吧</p>
+        <!-- ② 月度翻页阅览页 -->
+        <div class="daily-screen daily-reader" id="dailyReader">
+          <div class="reader-top">
+            <button class="reader-nav-btn" id="readerBack">‹ 封面</button>
+            <input type="month" id="readerMonth" class="journal-month-input small" />
+            <button class="reader-nav-btn" id="readerOverview">☰ 概览</button>
+          </div>
+          <div class="book" id="book">
+            <div class="book-page" id="bookPage"></div>
+            <button class="book-arrow prev" id="bookPrev" aria-label="上一条">‹</button>
+            <button class="book-arrow next" id="bookNext" aria-label="下一条">›</button>
+          </div>
+          <div class="reader-progress" id="readerProgress"></div>
+          <div class="reader-bottom">
+            <button class="reader-btn" id="readerEdit">✏️ 编辑本条</button>
+            <button class="reader-btn primary" id="readerAdd">➕ 新记录</button>
+          </div>
+          <div class="reader-empty" id="readerEmpty" style="display:none">
+            <p>这个月还没有记录哦～</p>
+            <button class="cover-btn primary" id="readerEmptyNew">✏️ 写第一篇</button>
+          </div>
         </div>
 
-        <button id="dailyAddBtn" class="daily-fab" aria-label="写日记">✏️</button>
+        <!-- ③ 书写 / 编辑页 -->
+        <div class="daily-screen daily-editor" id="dailyEditor">
+          <div class="editor-top">
+            <button class="editor-nav-btn" id="editorBack">‹ 返回</button>
+            <div class="editor-title" id="editorTitle">✏️ 写手账</div>
+          </div>
+          <div class="paper-sheet">
+            <div class="paper-meta">
+              <label>📅 日期</label>
+              <input type="date" id="editorDate" />
+              <label>⏰ 时间</label>
+              <input type="time" id="editorTime" />
+            </div>
+            <div class="paper-moods" id="editorMoods"></div>
+            <textarea id="editorText" class="paper-lines" placeholder="今天发生了什么？&#10;写下心情、琐事、小确幸……"></textarea>
+            <div class="paper-stickers">
+              <span class="sticker-label">🐾 贴纸</span>
+              <button type="button" class="sticker-opt" data-sticker="cat">🐱 小猫</button>
+              <button type="button" class="sticker-opt" data-sticker="rabbit">🐰 小兔</button>
+              <button type="button" class="sticker-opt active" data-sticker="">✕ 无</button>
+              <span class="sticker-preview" id="editorStickerPreview"></span>
+            </div>
+            <div class="paper-photos" id="editorPhotos"></div>
+            <div class="paper-actions">
+              <label class="paper-file-btn">📷 拍照
+                <input type="file" id="editorCamera" accept="image/*" capture="environment" hidden />
+              </label>
+              <label class="paper-file-btn">🖼️ 相册
+                <input type="file" id="editorGallery" accept="image/*" hidden />
+              </label>
+            </div>
+          </div>
+          <div class="editor-bottom">
+            <button class="editor-btn ghost" id="editorDelete" style="display:none">🗑️ 删除</button>
+            <button class="editor-btn primary" id="editorSave">💾 保存到手账本</button>
+          </div>
+        </div>
+
+        <!-- ④ 月度概览页 -->
+        <div class="daily-screen daily-overview" id="dailyOverview">
+          <div class="ov-top">
+            <button class="editor-nav-btn" id="ovBack">‹ 返回</button>
+            <div class="ov-title" id="ovTitle">📚 月度概览</div>
+          </div>
+          <div class="ov-grid" id="ovGrid"></div>
+          <div class="ov-empty" id="ovEmpty" style="display:none">本月还没有记录，去写第一篇吧～</div>
+        </div>
+
+        <button id="dailyAddBtn" class="daily-fab" aria-label="写手账">✏️</button>
       </section>
 
     </main>
@@ -652,76 +734,6 @@
       <div class="modal-actions">
         <button id="bpMCancel" class="ghost-btn">取消</button>
         <button id="bpMSave" class="primary-btn diet">保存</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 日常编辑弹窗 -->
-  <div id="dailyModal" class="modal-mask">
-    <div class="modal daily-modal">
-      <h3 id="dailyModalTitle">📝 记日常</h3>
-      <div class="daily-page">
-        <div class="daily-page-meta">
-          <input type="date" id="dailyDate" />
-          <input type="time" id="dailyTime" />
-        </div>
-        <div class="daily-paper">
-          <textarea id="dailyText" placeholder="今天发生了什么？写下心情、琐事、小确幸…"></textarea>
-          <svg class="daily-page-cat" viewBox="0 0 120 120" aria-hidden="true">
-            <ellipse cx="60" cy="104" rx="42" ry="10" fill="#fff0f6" stroke="#7a6f8a" stroke-width="2.5"/>
-            <path d="M88,82 Q104,70 104,88 Q104,100 92,98" fill="none" stroke="#7a6f8a" stroke-width="3" stroke-linecap="round"/>
-            <path d="M36,94 C30,72 34,48 52,40 C64,34 78,38 86,50 C92,62 92,80 88,94 C84,102 76,104 60,104 C44,104 38,100 36,94 Z" fill="#fff" stroke="#7a6f8a" stroke-width="3"/>
-            <path d="M48,40 C50,46 46,52 42,54 M72,40 C70,46 74,52 78,54" fill="none" stroke="#7a6f8a" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M34,46 C28,24 44,34 48,42 Z" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M86,46 C92,24 76,34 72,42 Z" fill="#fff" stroke="#7a6f8a" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M36,44 C34,32 42,38 44,42 Z M84,44 C86,32 78,38 76,42 Z" fill="#ffd9ea" stroke="none"/>
-            <circle cx="46" cy="64" r="7" fill="#7a6f8a"/>
-            <circle cx="48" cy="62" r="2.8" fill="#fff"/>
-            <circle cx="74" cy="64" r="7" fill="#7a6f8a"/>
-            <circle cx="76" cy="62" r="2.8" fill="#fff"/>
-            <ellipse cx="38" cy="72" rx="5" ry="3.2" fill="#ffd9ea"/>
-            <ellipse cx="82" cy="72" rx="5" ry="3.2" fill="#ffd9ea"/>
-            <path d="M57,70 L63,70 L60,74 Z" fill="#ff9ec4"/>
-            <path d="M60,74 C56,80 52,76 52,74 M60,74 C64,80 68,76 68,74" fill="none" stroke="#7a6f8a" stroke-width="2" stroke-linecap="round"/>
-            <path d="M34,68 L22,66 M34,72 L22,74 M86,68 L98,66 M86,72 L98,74" fill="none" stroke="#7a6f8a" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-            <ellipse cx="48" cy="96" rx="6" ry="4" fill="#fff" stroke="#7a6f8a" stroke-width="2.5"/>
-            <ellipse cx="72" cy="96" rx="6" ry="4" fill="#fff" stroke="#7a6f8a" stroke-width="2.5"/>
-          </svg>
-        </div>
-        <div class="daily-photos" id="dailyPhotos"></div>
-        <div class="daily-actions-row">
-          <label class="daily-file-btn">
-            📷 拍照
-            <input type="file" id="dailyCamera" accept="image/*" capture="environment" hidden />
-          </label>
-          <label class="daily-file-btn">
-            🖼️ 相册
-            <input type="file" id="dailyGallery" accept="image/*" hidden />
-          </label>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button id="dailyCancel" class="ghost-btn">取消</button>
-        <button id="dailyDelete" class="ghost-btn" style="display:none">🗑️ 删除</button>
-        <button id="dailySave" class="primary-btn">保存</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 日常手账本弹窗 -->
-  <div id="dailyBookModal" class="modal-mask">
-    <div class="modal daily-book-modal">
-      <div class="daily-book-head">
-        <button id="dailyBookPrev" class="round-btn">‹</button>
-        <h3 id="dailyBookTitle">📔 26年7月</h3>
-        <button id="dailyBookNext" class="round-btn">›</button>
-      </div>
-      <div class="daily-book-pages" id="dailyBookPages"></div>
-      <div class="daily-book-empty" id="dailyBookEmpty" style="display:none">
-        这个月还没有记录，快去写第一篇吧～
-      </div>
-      <div class="modal-actions">
-        <button id="dailyBookClose" class="primary-btn">关闭</button>
       </div>
     </div>
   </div>
