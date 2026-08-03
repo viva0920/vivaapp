@@ -2465,7 +2465,14 @@
      血压健康模块
      ========================================================= */
   const BP_TAGS = ["空腹", "饭后", "晨起", "睡前", "运动后", "服药后", "随机测量"];
-  const BP_STATUS = { normal: "正常", border: "偏高·临界", high: "高血压·异常" };
+  const BP_LEVELS = {
+    normal:   { label: "正常血压",          bg: "#d8f5ec", fg: "#1f8a6a", border: "#7ec8a0" },
+    elevated: { label: "正常高值",          bg: "#fff1cf", fg: "#a86500", border: "#f5a623" },
+    lv1:      { label: "1级高血压（轻度）",  bg: "#ffe3c2", fg: "#b84700", border: "#f08a24" },
+    lv2:      { label: "2级高血压（中度）",  bg: "#ffd0b0", fg: "#a83c08", border: "#e8590c" },
+    lv3:      { label: "3级高血压（重度）",  bg: "#ffc2d2", fg: "#b01257", border: "#e23757" },
+    ish:      { label: "单纯收缩期高血压",    bg: "#e6dcff", fg: "#5f37a8", border: "#9b59b6" },
+  };
 
   function bpNorm() {
     if (!state.bp || typeof state.bp !== "object") state.bp = {};
@@ -2484,9 +2491,12 @@
   }
 
   function bpLevel(sbp, dbp) {
-    if (sbp >= 140 || dbp >= 90) return "high";
-    if (sbp >= 120 || dbp >= 80) return "border";
-    return "normal";
+    // 单纯收缩期高血压：收缩压≥140 且 舒张压<90
+    if (sbp >= 140 && dbp < 90) return "ish";
+    const sLvl = sbp >= 180 ? 5 : sbp >= 160 ? 4 : sbp >= 140 ? 3 : sbp >= 120 ? 2 : 1;
+    const dLvl = dbp >= 110 ? 5 : dbp >= 100 ? 4 : dbp >= 90 ? 3 : dbp >= 80 ? 2 : 1;
+    const max = Math.max(sLvl, dLvl); // 收缩压/舒张压分属不同级别时，以较高级别为准
+    return ({ 1: "normal", 2: "elevated", 3: "lv1", 4: "lv2", 5: "lv3" })[max];
   }
 
   function bpFiltered() {
@@ -2681,13 +2691,14 @@
       empty.style.display = "none";
       list.innerHTML = recs.map((r) => {
         const lv = bpLevel(r.sbp, r.dbp);
+        const L = BP_LEVELS[lv];
         const sel = state.bp._sel.indexOf(r.id) >= 0;
-        let html = '<div class="bp-item bp-lv-' + lv + '">';
+        let html = '<div class="bp-item" style="border-left-color:' + L.border + '">';
         html += '<label class="bp-check" style="display:' + (state.bp._batch ? "flex" : "none") + '"><input type="checkbox" class="bp-sel" data-id="' + r.id + '"' + (sel ? " checked" : "") + '/></label>';
         html += '<div class="bp-main">';
         html += '<div class="bp-line1"><span class="bp-dt">' + escapeHtml((r.dt || "").replace("T", " ")) + '</span>';
         html += '<span class="bp-slot">' + escapeHtml(r.slot || "") + '</span>';
-        html += '<span class="bp-badge bp-badge-' + lv + '">' + BP_STATUS[lv] + '</span></div>';
+        html += '<span class="bp-badge" style="background:' + L.bg + ';color:' + L.fg + '">' + L.label + '</span></div>';
         html += '<div class="bp-line2"><b class="bp-sbp">' + r.sbp + '</b>/<b class="bp-dbp">' + r.dbp + '</b> mmHg';
         if (typeof r.hr === "number" && !isNaN(r.hr)) html += ' · ❤️ ' + r.hr;
         html += '</div>';
