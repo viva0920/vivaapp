@@ -924,6 +924,7 @@ body {
 /* ③ 翻页阅览页 */
 .reader-top, .editor-top, .ov-top {
   display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+  flex-shrink: 0;
 }
 .reader-nav-btn, .editor-nav-btn {
   border: none; background: rgba(255,255,255,.85); color: #b07f96; border-radius: 14px;
@@ -980,6 +981,7 @@ body {
   box-shadow: 0 8px 22px rgba(180,150,130,.14);
   background-image: repeating-linear-gradient(transparent, transparent 33px, #efe6d6 33px, #efe6d6 34px);
   background-attachment: local;
+  flex: 1; overflow-y: auto; min-height: 0;
 }
 .paper-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .paper-meta label { font-size: 13px; color: #b07f96; }
@@ -1020,7 +1022,7 @@ body {
   border: 2px dashed #f0c2d8; border-radius: 14px; padding: 12px; font-size: 13px; color: #c98aa6; cursor: pointer;
 }
 .paper-file-btn:active { background: #fff0f6; }
-.editor-bottom { display: flex; gap: 12px; padding: 8px 18px 16px; }
+.editor-bottom { display: flex; gap: 12px; padding: 8px 18px calc(16px + env(safe-area-inset-bottom)); flex-shrink: 0; }
 .editor-btn {
   flex: 1; border: none; border-radius: 16px; padding: 13px; font-family: inherit; font-size: 15px; cursor: pointer;
 }
