@@ -679,7 +679,7 @@ body {
   font-family: 'ZCOOL KuaiLe', var(--font);
   animation: journalFade .35s ease;
 }
-.daily-screen.active { display: block; }
+.daily-screen.active { display: flex; flex-direction: column; }
 @keyframes journalFade { from { opacity: 0; } to { opacity: 1; } }
 
 .journal-month-input {
@@ -692,7 +692,6 @@ body {
 .daily-cover {
   background: linear-gradient(180deg, #3b2169 0%, #2a1850 100%);
   position: relative; overflow-y: auto;
-  display: flex; flex-direction: column;
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 .cover-stars { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
@@ -751,7 +750,7 @@ body {
 /* ② 月度手账本（单页整月 + 翻页 + 详情弹层） */
 .daily-monthbook {
   background: linear-gradient(180deg, #3b2169 0%, #2a1850 100%);
-  position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;
+  position: relative; overflow: hidden; height: 100%;
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 .monthbook-stars { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
