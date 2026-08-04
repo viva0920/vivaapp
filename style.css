@@ -674,8 +674,7 @@ body {
   top: 0; bottom: 0; left: 0; right: 0;
   width: 100%; max-width: 100%;
   background: #fbf6f0;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-  overscroll-behavior: none;
+  overflow: hidden; overscroll-behavior: none;
   display: none; z-index: 50;
   font-family: 'ZCOOL KuaiLe', var(--font);
   animation: journalFade .35s ease;
@@ -693,7 +692,7 @@ body {
 /* ① 封面页 + ② 月度手账本（严格对齐 首页.png / 月历.png） */
 .daily-cover {
   background: linear-gradient(180deg, #3b2169 0%, #2a1850 100%);
-  position: relative; overflow-y: auto;
+  position: relative;
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 .cover-stars { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
@@ -714,7 +713,7 @@ body {
 
 /* 封面书本卡片 */
 .cover-book {
-  position: relative; z-index: 1; margin: 10px 0 0;
+  position: relative; z-index: 1; margin: 10px 16px 0;
   background: linear-gradient(180deg, #efe7ff, #e0d3ff);
   border-radius: 28px; padding: 18px 18px 22px; text-align: center;
   box-shadow: 0 16px 38px rgba(40,20,80,.45), inset 0 0 0 1px rgba(255,255,255,.55);
@@ -770,7 +769,7 @@ body {
 .cover-cal-day .dot { position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: #c86bff; }
 
 /* 封面月份选择 + 底部按钮 */
-.cover-controls { position: relative; z-index: 1; margin: 14px 0 0; }
+.cover-controls { position: relative; z-index: 1; margin: 14px 16px 0; }
 .cover-month-label { color: #d9cdf2; font-size: 12px; display: block; margin-bottom: 6px; }
 .cover-picker {
   display: flex; align-items: center; gap: 8px; background: rgba(30, 20, 50, .55); border: none;
@@ -782,7 +781,7 @@ body {
 /* 封面底部按钮 */
 .cover-btns {
   position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px;
-  margin-top: auto; padding: 14px 0 calc(20px + env(safe-area-inset-bottom));
+  margin-top: auto; padding: 14px 16px calc(20px + env(safe-area-inset-bottom));
 }
 .cover-btn {
   border: none; border-radius: 16px; padding: 14px; font-size: 15px; font-weight: 800;
@@ -827,7 +826,7 @@ body {
 
 .monthbook-desk {
   flex: 1; min-height: 0; display: flex; align-items: stretch; justify-content: center;
-  padding: 4px 0 8px; overflow: hidden; position: relative; z-index: 1; scrollbar-width: none;
+  padding: 4px 14px 8px; overflow: hidden; position: relative; z-index: 1; scrollbar-width: none;
 }
 .monthbook-desk::-webkit-scrollbar { display: none; }
 .monthbook-book {
@@ -872,7 +871,7 @@ body {
 .sticker-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .monthbook-empty { color: #e9def7; text-align: center; padding: 40px 20px; }
 .monthbook-bottom {
-  display: flex; gap: 12px; padding: 12px 18px calc(18px + env(safe-area-inset-bottom));
+  display: flex; gap: 12px; padding: 12px 14px calc(18px + env(safe-area-inset-bottom));
   position: relative; z-index: 1;
 }
 .monthbook-btn {
