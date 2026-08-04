@@ -2853,48 +2853,7 @@
   }
 
   function renderCover() {
-    const ym = monthStr();
-    const cm = $("#coverMonth");
-    if (cm && !cm.value) cm.value = ym;
-    monthbookYm = cm && cm.value ? cm.value : ym;
     paintStars("coverStars", "cv-star");
-    buildCoverCalendar(monthbookYm);
-  }
-  function buildCoverCalendar(ym) {
-    dailyNorm();
-    const cal = $("#coverCalendar");
-    if (!cal) return;
-    const parts = ym.split("-");
-    const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
-    const startDow = new Date(y, m - 1, 1).getDay();
-    const days = new Date(y, m, 0).getDate();
-    const wd = ["日", "一", "二", "三", "四", "五", "六"];
-    const today = todayStr();
-    const hasSet = {};
-    state.daily.entries.forEach((e) => {
-      const dd = e.date || "";
-      if (dd.slice(0, 7) === ym) hasSet[dd.slice(8, 10)] = true;
-    });
-    const head = wd.map((w) => "<span>" + w + "</span>").join("");
-    let cells = "";
-    for (let i = 0; i < startDow; i++) cells += '<div class="cover-cal-day empty"></div>';
-    for (let d = 1; d <= days; d++) {
-      const ds = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
-      const isToday = ds === today;
-      const dd = String(d).padStart(2, "0");
-      const h = !!hasSet[dd];
-      const cls = isToday ? "today" : (h ? "has" : "");
-      const dot = (h && !isToday) ? '<span class="dot"></span>' : "";
-      cells += '<div class="cover-cal-day ' + cls + '">' + d + dot + "</div>";
-    }
-    cal.innerHTML =
-      '<div class="cover-cal-head"><span>' + y + '年' + m + '月</span>' +
-      '<span class="cover-cal-mv"><button id="coverCalPrev">‹</button><button id="coverCalNext">›</button></span></div>' +
-      '<div class="cover-cal-week">' + head + '</div>' +
-      '<div class="cover-cal-days">' + cells + '</div>';
-    const prev = $("#coverCalPrev"), next = $("#coverCalNext");
-    if (prev) prev.addEventListener("click", () => { monthbookYm = shiftMonth(ym, -1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
-    if (next) next.addEventListener("click", () => { monthbookYm = shiftMonth(ym, 1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
   }
 
   function paintStars(id, cls) {
@@ -3246,9 +3205,8 @@
       try { store.set("wb_last_module", target.dataset.module); } catch (e) {}
     }
   });
-  $("#coverOpenBtn").addEventListener("click", () => { const cm = $("#coverMonth"); monthbookYm = (cm && cm.value) || monthStr(); readerIdx = 0; showDailyScreen("monthbook"); });
-  $("#coverMonth").addEventListener("change", () => { const cm = $("#coverMonth"); if (cm) { monthbookYm = cm.value || monthStr(); buildCoverCalendar(monthbookYm); } });
-  $("#coverNewBtn").addEventListener("click", () => { const cm = $("#coverMonth"); openEditor({ date: defaultNewDate((cm && cm.value) || monthStr()) }); });
+  $("#coverOpenBtn").addEventListener("click", () => { monthbookYm = monthStr(); readerIdx = 0; showDailyScreen("monthbook"); });
+  $("#coverNewBtn").addEventListener("click", () => { openEditor({ date: defaultNewDate(monthStr()) }); });
   $("#readerBack").addEventListener("click", () => showDailyScreen("monthbook"));
   $("#readerOverview").addEventListener("click", () => showDailyScreen("overview"));
   $("#readerMonth").addEventListener("change", () => { const rm = $("#readerMonth"); readerYm = (rm && rm.value) || monthStr(); monthbookYm = readerYm; readerIdx = 0; renderReader(); });
