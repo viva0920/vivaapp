@@ -1093,3 +1093,26 @@ body {
   position: static;
   flex-shrink: 0;
 }
+
+/* 右上角备份/恢复浮层：替代被隐藏的顶栏，功能保留；z-index 低于手账屏(50)，手账页打开时自动被盖住 */
+.backup-bar {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 10px);
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 40;
+}
+.backup-bar .bb-btn {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  color: #3b2169;
+  box-shadow: 0 3px 10px rgba(20,10,40,.25);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.backup-bar .bb-btn:active { transform: scale(.96); }
