@@ -55,7 +55,7 @@ body {
 .topbar {
   order: 0;
   flex-shrink: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
