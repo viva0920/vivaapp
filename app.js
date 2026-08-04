@@ -2857,6 +2857,7 @@
     const cm = $("#coverMonth");
     if (cm && !cm.value) cm.value = ym;
     monthbookYm = cm && cm.value ? cm.value : ym;
+    paintStars("coverStars", "cv-star");
     buildCoverCalendar(monthbookYm);
   }
   function buildCoverCalendar(ym) {
@@ -2865,21 +2866,50 @@
     if (!cal) return;
     const parts = ym.split("-");
     const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
-    const first = new Date(y, m - 1, 1);
-    const startDow = first.getDay();
+    const startDow = new Date(y, m - 1, 1).getDay();
     const days = new Date(y, m, 0).getDate();
     const wd = ["日", "一", "二", "三", "四", "五", "六"];
-    let head = wd.map((w) => "<span>" + w + "</span>").join("");
-    let cells = "";
-    for (let i = 0; i < startDow; i++) cells += "<b></b>";
     const today = todayStr();
+    const hasSet = {};
+    state.daily.entries.forEach((e) => {
+      const dd = e.date || "";
+      if (dd.slice(0, 7) === ym) hasSet[dd.slice(8, 10)] = true;
+    });
+    const head = wd.map((w) => "<span>" + w + "</span>").join("");
+    let cells = "";
+    for (let i = 0; i < startDow; i++) cells += '<div class="cover-cal-day empty"></div>';
     for (let d = 1; d <= days; d++) {
       const ds = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
-      const cls = ds === today ? "today" : "has";
-      const has = state.daily.entries.some((e) => (e.date || "").slice(0, 7) === ym);
-      cells += '<b class="' + (ds === today ? "today" : (has ? "has" : "")) + '">' + d + "</b>";
+      const isToday = ds === today;
+      const dd = String(d).padStart(2, "0");
+      const h = !!hasSet[dd];
+      const cls = isToday ? "today" : (h ? "has" : "");
+      const dot = (h && !isToday) ? '<span class="dot"></span>' : "";
+      cells += '<div class="cover-cal-day ' + cls + '">' + d + dot + "</div>";
     }
-    cal.innerHTML = '<div class="cover-cal-head">' + y + '年' + m + '月</div><div class="cover-cal-grid">' + head + cells + '</div>';
+    cal.innerHTML =
+      '<div class="cover-cal-head"><span>' + y + '年' + m + '月</span>' +
+      '<span class="cover-cal-mv"><button id="coverCalPrev">‹</button><button id="coverCalNext">›</button></span></div>' +
+      '<div class="cover-cal-week">' + head + '</div>' +
+      '<div class="cover-cal-days">' + cells + '</div>';
+    const prev = $("#coverCalPrev"), next = $("#coverCalNext");
+    if (prev) prev.addEventListener("click", () => { monthbookYm = shiftMonth(ym, -1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
+    if (next) next.addEventListener("click", () => { monthbookYm = shiftMonth(ym, 1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
+  }
+
+  function paintStars(id, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let html = "";
+    for (let i = 0; i < 26; i++) {
+      const ch = Math.random() > .5 ? "★" : "✦";
+      const left = (Math.random() * 100).toFixed(2);
+      const top = (Math.random() * 55).toFixed(2);
+      const fs = (8 + Math.random() * 12).toFixed(1);
+      const delay = (Math.random() * 3).toFixed(2);
+      html += '<span class="' + cls + '" style="left:' + left + '%;top:' + top + '%;font-size:' + fs + 'px;animation-delay:' + delay + 's">' + ch + '</span>';
+    }
+    el.innerHTML = html;
   }
 
   function shiftMonth(ym, delta) {
@@ -2893,8 +2923,7 @@
   function renderMonthBook() {
     const ym = monthbookYm;
     const [y, m] = ym.split("-").map(Number);
-    const title = $("#monthbookTitle");
-    if (title) title.textContent = y + "年" + m + "月";
+    paintStars("monthbookStars", "mb-star");
     const cur = $("#monthbookCur");
     if (cur) cur.textContent = y + "年" + m + "月";
     const sub = $("#monthbookCursub");
@@ -3200,6 +3229,17 @@
   }
 
   // ---- 封面 / 阅览 / 概览 / 编辑 事件绑定 ----
+  $("#coverBack").addEventListener("click", () => {
+    const items = $$(".nav-item");
+    let target = null;
+    items.forEach((b) => { if (b.dataset.module && b.dataset.module !== "daily") target = b; });
+    if (!target && items.length) target = items[0];
+    if (target) {
+      $$(".nav-item").forEach((b) => b.classList.toggle("active", b === target));
+      $$(".module").forEach((sec) => sec.classList.toggle("active", sec.id === "module-" + target.dataset.module));
+      try { store.set("wb_last_module", target.dataset.module); } catch (e) {}
+    }
+  });
   $("#coverOpenBtn").addEventListener("click", () => { const cm = $("#coverMonth"); monthbookYm = (cm && cm.value) || monthStr(); readerIdx = 0; showDailyScreen("monthbook"); });
   $("#coverMonth").addEventListener("change", () => { const cm = $("#coverMonth"); if (cm) { monthbookYm = cm.value || monthStr(); buildCoverCalendar(monthbookYm); } });
   $("#coverNewBtn").addEventListener("click", () => { const cm = $("#coverMonth"); openEditor({ date: defaultNewDate((cm && cm.value) || monthStr()) }); });
