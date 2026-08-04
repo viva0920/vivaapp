@@ -672,8 +672,8 @@ body {
 /* ===== 日常手账本模块（日系手绘风） ===== */
 .daily-screen {
   position: absolute;
-  inset: 10px;
-  margin: 0 auto;
+  top: 10px; bottom: 10px;
+  left: 50%; transform: translateX(-50%);
   width: calc(100% - 20px);
   background: #fbf6f0;
   overflow: hidden; overscroll-behavior: none;
