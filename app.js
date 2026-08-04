@@ -2884,19 +2884,20 @@
 
   function renderMonthBook() {
     const ym = monthbookYm;
-    const parts = ym.split("-");
-    const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+    const [y, m] = ym.split("-").map(Number);
     const title = $("#monthbookTitle");
     if (title) title.textContent = y + "年" + m + "月";
     const no = $("#monthbookNo");
     if (no) no.textContent = "month / " + String(m).padStart(2, "0");
     const entries = dailyEntriesOfMonth(ym);
-    const wrap = $("#monthbookEntries");
+    const left = $("#monthbookGridLeft");
+    const right = $("#monthbookGridRight");
     const empty = $("#monthbookEmpty");
     const desk = $("#monthbookDesk");
     const bottom = $("#monthbookBottom");
     if (!entries.length) {
-      if (wrap) wrap.innerHTML = "";
+      if (left) left.innerHTML = "";
+      if (right) right.innerHTML = "";
       if (empty) empty.style.display = "block";
       if (desk) desk.style.display = "none";
       if (bottom) bottom.style.display = "none";
@@ -2905,26 +2906,58 @@
     if (empty) empty.style.display = "none";
     if (desk) desk.style.display = "flex";
     if (bottom) bottom.style.display = "flex";
-    if (!wrap) return;
-    wrap.innerHTML = entries.map((e, i) => {
-      const dt = new Date(e.date + "T00:00:00");
-      const wd = ["日", "一", "二", "三", "四", "五", "六"][dt.getDay()];
-      const mood = DAILY_MOODS.find((x) => x.key === e.mood);
-      const imgs = (e.images || []).map((src) => '<img src="' + src + '" />').join("");
-      const sticker = stickerSvg(e.sticker);
-      return '<div class="monthbook-entry" data-idx="' + i + '">' +
-        '<div class="monthbook-entry-date">' + (parseInt(e.date.split("-")[1], 10)) + "/" + (parseInt(e.date.split("-")[2], 10)) +
-        ' <span class="monthbook-entry-mood">' + (mood ? mood.label : "") + '</span></div>' +
-        '<div class="monthbook-entry-text">' + escapeHtml(e.text || "") + '</div>' +
-        (imgs ? '<div class="monthbook-entry-media">' + imgs + '</div>' : "") +
-        (sticker ? '<div class="monthbook-entry-sticker">' + sticker + '</div>' : "") +
-        '</div>';
-    }).join("");
-    $$(".monthbook-entry", wrap).forEach((el) => el.addEventListener("click", () => {
-      readerIdx = parseInt(el.dataset.idx, 10);
-      readerYm = ym;
-      showDailyScreen("reader");
-    }));
+
+    const today = todayStr();
+    const firstDay = new Date(y, m - 1, 1);
+    const startWeek = firstDay.getDay();
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const byDate = {};
+    entries.forEach((e) => { byDate[e.date] = e; });
+
+    function buildCell(idx) {
+      const dayNum = idx - startWeek + 1;
+      if (dayNum < 1 || dayNum > daysInMonth) {
+        return '<div class="monthbook-cell monthbook-cell-empty"></div>';
+      }
+      const dateStr = y + "-" + String(m).padStart(2, "0") + "-" + String(dayNum).padStart(2, "0");
+      const isToday = dateStr === today;
+      const e = byDate[dateStr];
+      const has = !!e;
+      let content = '<span class="monthbook-cell-day' + (isToday ? " today" : "") + '">' + dayNum + '</span>';
+      if (e) {
+        const text = (e.text || "").replace(/\s+/g, " ").trim();
+        const snippet = text.length > 10 ? text.slice(0, 10) + "…" : text;
+        const img = (e.images && e.images[0]) ? '<img src="' + e.images[0] + '" class="monthbook-cell-img" alt="" />' : "";
+        const sticker = e.sticker ? '<span class="monthbook-cell-sticker">' + stickerSvg(e.sticker) + '</span>' : "";
+        content += '<div class="monthbook-cell-body">' +
+          (snippet ? '<span class="monthbook-cell-text">' + escapeHtml(snippet) + '</span>' : "") +
+          img + sticker + '</div>';
+      }
+      return '<div class="monthbook-cell' + (has ? " has" : "") + (isToday ? " today" : "") + '" data-date="' + dateStr + '" data-has="' + has + '">' + content + '</div>';
+    }
+
+    if (left) left.innerHTML = Array.from({length: 21}, (_, i) => buildCell(i)).join("");
+    if (right) right.innerHTML = Array.from({length: 21}, (_, i) => buildCell(i + 21)).join("");
+
+    [left, right].forEach((grid) => {
+      if (!grid) return;
+      $$(".monthbook-cell", grid).forEach((cell) => {
+        cell.addEventListener("click", () => {
+          const date = cell.dataset.date;
+          const has = cell.dataset.has === "true";
+          if (has && byDate[date]) {
+            const list = dailyEntriesOfMonth(monthbookYm);
+            readerIdx = list.findIndex((e) => e.date === date);
+            if (readerIdx < 0) readerIdx = 0;
+            readerYm = monthbookYm;
+            showDailyScreen("reader");
+          } else {
+            openEditor(date);
+            showDailyScreen("editor");
+          }
+        });
+      });
+    });
   }
 
   function renderReader() {
