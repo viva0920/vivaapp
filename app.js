@@ -2927,7 +2927,7 @@
     const cur = $("#monthbookCur");
     if (cur) cur.textContent = y + "年" + m + "月";
     const sub = $("#monthbookCursub");
-    if (sub) sub.textContent = "第 " + m + " 月 · 点日期看详情，点箭头翻月";
+    if (sub) sub.textContent = "第 " + m + " 月 · 左右滑动或点箭头翻页";
 
     const entries = dailyEntriesOfMonth(ym);
     const grid = $("#monthbookGrid");
@@ -2955,23 +2955,29 @@
     let html = "";
     for (let i = 0; i < 42; i++) {
       const dayNum = i - startWeek + 1;
-      if (dayNum < 1 || dayNum > daysInMonth) { html += '<div class="monthbook-cell monthbook-cell-empty"></div>'; continue; }
+      if (dayNum < 1 || dayNum > daysInMonth) { html += '<div class="monthbook-cell empty"></div>'; continue; }
       const dateStr = y + "-" + String(m).padStart(2, "0") + "-" + String(dayNum).padStart(2, "0");
       const isToday = dateStr === today;
       const list = byDate[dateStr] || [];
       const has = list.length > 0;
       const first = list[0] || null;
-      let inner = '<span class="monthbook-cell-day' + (isToday ? " today" : "") + '">' + dayNum + "</span>";
-      if (first) {
-        const me = moodEmoji(first.mood);
-        let thumbs = "";
-        (first.images || []).slice(0, 3).forEach((src) => { thumbs += '<img src="' + src + '" class="monthbook-cell-img" alt="" />'; });
-        const sticker = first.sticker ? '<span class="monthbook-cell-sticker">' + stickerSvg(first.sticker) + "</span>" : "";
-        const more = list.length > 1 ? '<span class="monthbook-cell-more">+' + (list.length - 1) + "</span>" : "";
-        inner += '<div class="monthbook-cell-body">' +
-          (me ? '<span class="monthbook-cell-mood">' + me + "</span>" : "") +
-          (thumbs ? '<div class="monthbook-cell-thumbs">' + thumbs + "</div>" : "") +
-          sticker + more + "</div>";
+      const me = first ? moodEmoji(first.mood) : "";
+      const sticker = first && first.sticker ? '<span class="cell-sticker">' + stickerSvg(first.sticker) + "</span>" : "";
+      const more = list.length > 1 ? '<span class="cell-more">+' + (list.length - 1) + "</span>" : "";
+      const imgCount = first ? Math.min((first.images || []).length, 3) : 0;
+      let dots = "";
+      if (imgCount) {
+        dots = '<div class="cell-dots">' + Array(imgCount).fill('<span></span>').join("") + "</div>";
+      }
+
+      let inner = "";
+      if (isToday) {
+        inner += '<div class="cell-today-circle">' + (me ? me : '<span class="num">' + dayNum + "</span>") + "</div>";
+      } else {
+        inner += '<span class="monthbook-cell-day">' + dayNum + "</span>";
+      }
+      if (has) {
+        inner += (me && !isToday ? '<div class="cell-mood">' + me + "</div>" : "") + dots + sticker + more;
       }
       html += '<div class="monthbook-cell' + (has ? " has" : "") + (isToday ? " today" : "") + '" data-date="' + dateStr + '">' + inner + "</div>";
     }
