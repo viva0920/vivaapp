@@ -801,6 +801,8 @@ body {
 .monthbook-entry-sticker {
   position: absolute; right: 0; bottom: 10px; width: 44px; height: 44px; opacity: .8; pointer-events: none;
 }
+.sticker-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.sticker-preview { display: inline-block; }
 .monthbook-footer {
   display: flex; align-items: center; justify-content: space-between;
   padding-top: 12px; border-top: 1.5px dashed #e3d7c4; margin-top: auto;
