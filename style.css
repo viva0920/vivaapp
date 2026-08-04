@@ -734,84 +734,113 @@ body {
 .cover-btn.primary { background: linear-gradient(135deg, #ffb3d1, #ff8fb4); color: #fff; }
 .cover-btn:active { transform: scale(.97); }
 
-/* ② 月度手账本整合页（当月全部记录在一本打开的笔记本里） */
-.monthbook-top, .monthbook-title { display: flex; align-items: center; }
+/* ② 月度手账本整合页（参考手账.png：淡紫色星空双页月历） */
+.daily-monthbook {
+  background: linear-gradient(180deg, #ebe4f7 0%, #d8cde9 100%);
+  position: relative; overflow: hidden;
+}
+.monthbook-stars {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+}
+.mb-star {
+  position: absolute; color: #fff;
+  text-shadow: 0 0 8px rgba(255,255,255,.8), 0 0 16px rgba(180,160,230,.6);
+  animation: mbTwinkle 3s ease-in-out infinite;
+}
+.mb-star.s1 { top: 8%; left: 8%; font-size: 18px; animation-delay: 0s; }
+.mb-star.s2 { top: 12%; right: 10%; font-size: 14px; color: #ffe9a8; animation-delay: .6s; }
+.mb-star.s3 { top: 36%; left: 4%; font-size: 12px; animation-delay: 1.2s; }
+.mb-star.s4 { bottom: 22%; right: 6%; font-size: 20px; color: #ffe9a8; animation-delay: .3s; }
+.mb-star.s5 { bottom: 12%; left: 12%; font-size: 16px; animation-delay: .9s; }
+.mb-star.s6 { top: 54%; right: 4%; font-size: 10px; animation-delay: 1.5s; }
+@keyframes mbTwinkle {
+  0%,100% { opacity: .55; transform: scale(.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.monthbook-top, .monthbook-title { display: flex; align-items: center; position: relative; z-index: 1; }
 .monthbook-top {
   justify-content: space-between; gap: 10px; padding: 12px 16px;
 }
-.monthbook-title { flex: 1; justify-content: center; font-size: 18px; color: #7a5a6e; font-weight: 800; }
+.monthbook-title {
+  flex: 1; justify-content: center; font-size: 18px; color: #6b5a7d; font-weight: 800;
+  letter-spacing: 1px; text-shadow: 0 1px 2px rgba(255,255,255,.4);
+}
 .monthbook-nav-btn {
-  border: none; background: rgba(255,255,255,.85); color: #b07f96; border-radius: 14px;
-  padding: 8px 12px; font-family: inherit; font-size: 14px; cursor: pointer; box-shadow: 0 2px 6px rgba(190,150,170,.15);
+  border: none; background: rgba(255,255,255,.55); color: #7a6a8a; border-radius: 14px;
+  padding: 8px 12px; font-family: inherit; font-size: 14px; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(140,120,180,.15); backdrop-filter: blur(6px);
 }
 .monthbook-desk {
   flex: 1; min-height: 0; display: flex; align-items: stretch; justify-content: center;
-  padding: 0 14px 8px; overflow-y: auto; scrollbar-width: none;
+  padding: 0 12px 8px; overflow: auto; position: relative; z-index: 1; scrollbar-width: none;
 }
 .monthbook-desk::-webkit-scrollbar { display: none; }
 .monthbook-book {
-  width: 100%; max-width: 460px;
-  background: #8b6f5c; border-radius: 20px;
-  padding: 10px 14px 14px 18px;
-  box-shadow: 0 18px 40px rgba(100,75,60,.35), inset 0 0 0 2px rgba(255,255,255,.1);
-  position: relative;
+  width: 100%; max-width: 760px; min-width: 300px;
+  background: linear-gradient(135deg, #c9b9e0 0%, #b8a6d6 100%);
+  border-radius: 22px; padding: 12px 10px 14px;
+  box-shadow: 0 20px 50px rgba(120,100,150,.35), inset 0 0 0 2px rgba(255,255,255,.18);
+  display: flex; align-items: stretch; position: relative;
 }
 .monthbook-book::before {
-  content: ''; position: absolute; left: 12px; top: 10px; bottom: 14px; width: 6px;
-  background: repeating-linear-gradient(180deg, #a68b78 0 6px, #7a5f4d 6px 12px);
-  border-radius: 4px;
+  content: ''; position: absolute; left: 50%; top: 8px; bottom: 10px; width: 14px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #a593c4 0%, #d4c6e8 30%, #9f8cbf 60%, #d4c6e8 100%);
+  border-radius: 7px; box-shadow: inset 0 0 4px rgba(0,0,0,.1);
 }
 .monthbook-page {
+  flex: 1; min-width: 0;
   background:
-    repeating-linear-gradient(transparent, transparent 31px, #efe6d6 31px, #efe6d6 32px),
-    #fffdf6;
-  border-radius: 4px 14px 14px 4px;
-  margin-left: 14px; min-height: 58vh;
-  padding: 18px 18px 22px;
-  box-shadow: inset 12px 0 18px rgba(180,150,120,.1);
-  display: flex; flex-direction: column;
+    linear-gradient(rgba(255,253,249,.88), rgba(255,253,249,.88)),
+    repeating-linear-gradient(transparent, transparent 23px, #efe8e0 23px, #efe8e0 24px),
+    #fffdf9;
+  border-radius: 4px 14px 14px 4px; padding: 10px 8px 12px;
+  box-shadow: inset 10px 0 14px rgba(180,160,140,.08);
+  display: flex; flex-direction: column; position: relative;
 }
-.monthbook-header {
+.monthbook-page-left { border-radius: 14px 4px 4px 14px; margin-right: 7px; }
+.monthbook-page-right { border-radius: 4px 14px 14px 4px; margin-left: 7px; }
+.monthbook-page-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding-bottom: 10px; border-bottom: 1.5px dashed #e3d7c4; margin-bottom: 8px;
+  padding-bottom: 8px; border-bottom: 1.5px dashed #ddd3e6; margin-bottom: 8px;
 }
-.monthbook-notes { font-size: 22px; color: #7a5a6e; font-weight: 800; letter-spacing: 1px; }
-.monthbook-monthno { font-size: 12px; color: #b07f96; letter-spacing: 1px; }
-.monthbook-entries { flex: 1; }
-.monthbook-entry {
-  padding: 14px 0; border-bottom: 1px dashed #e8e0d4;
-  position: relative; animation: fadeIn .35s ease both;
+.monthbook-page-label { display: flex; flex-direction: column; gap: 2px; }
+.monthbook-notes { font-size: 18px; color: #9a8ab8; font-weight: 800; letter-spacing: 1px; line-height: 1; }
+.monthbook-monthno { font-size: 10px; color: #b8aacf; letter-spacing: 1px; }
+.monthbook-weekdays {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  text-align: center; font-size: 9px; color: #b0a0c8; font-weight: 700;
 }
-.monthbook-entry:last-child { border-bottom: none; }
-.monthbook-entry-date {
-  font-size: 13px; color: #b07f96; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+.monthbook-weekdays span { padding: 2px 0; }
+.monthbook-grid {
+  flex: 1; display: grid;
+  grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(3, 1fr); gap: 3px;
 }
-.monthbook-entry-mood {
-  font-size: 12px; padding: 2px 10px; border-radius: 12px; background: #fff0f6; color: #b07f96;
+.monthbook-cell {
+  min-height: 70px; background: rgba(255,255,255,.55); border-radius: 6px;
+  border: 1px solid rgba(180,160,200,.22); padding: 3px;
+  display: flex; flex-direction: column; cursor: pointer;
+  transition: transform .12s, box-shadow .12s, background .12s;
 }
-.monthbook-entry-text {
-  font-size: 16px; line-height: 30px; color: #7a5a6e; white-space: pre-wrap; word-break: break-word;
+.monthbook-cell:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(140,120,180,.18); background: rgba(255,255,255,.75); }
+.monthbook-cell-empty { background: transparent; border-color: transparent; pointer-events: none; }
+.monthbook-cell.has { background: rgba(255,255,255,.9); }
+.monthbook-cell.today { border-color: #c4b5e0; background: rgba(232,223,247,.55); box-shadow: inset 0 0 0 1px rgba(180,160,220,.35); }
+.monthbook-cell-day {
+  font-size: 10px; color: #9a8ab8; font-weight: 700; width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 2px;
 }
-.monthbook-entry-media {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;
-}
-.monthbook-entry-media img {
-  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; border: 2px solid #efe3d4;
-}
-.monthbook-entry-sticker {
-  position: absolute; right: 0; bottom: 10px; width: 44px; height: 44px; opacity: .8; pointer-events: none;
-}
+.monthbook-cell-day.today { background: #b8a6d6; color: #fff; }
+.monthbook-cell-body { flex: 1; display: flex; flex-direction: column; gap: 2px; min-height: 0; overflow: hidden; }
+.monthbook-cell-text { font-size: 9px; line-height: 1.25; color: #7a6a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.monthbook-cell-img { width: 100%; max-height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(180,160,200,.2); }
+.monthbook-cell-sticker { width: 18px; height: 18px; margin-top: auto; opacity: .9; }
 .sticker-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .sticker-preview { display: inline-block; }
-.monthbook-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  padding-top: 12px; border-top: 1.5px dashed #e3d7c4; margin-top: auto;
-}
-.monthbook-brand { font-size: 11px; color: #c9b3bd; letter-spacing: 1px; }
-.monthbook-cat { width: 32px; height: 32px; }
-.monthbook-empty { display: none; text-align: center; padding: 40px 20px; color: #b07f96; }
+.monthbook-empty { display: none; text-align: center; padding: 40px 20px; color: #7a6a8a; position: relative; z-index: 1; }
 .monthbook-bottom {
-  display: flex; gap: 12px; padding: 8px 18px 16px;
+  display: flex; gap: 12px; padding: 8px 18px 16px; position: relative; z-index: 1;
 }
 
 /* ③ 翻页阅览页 */
