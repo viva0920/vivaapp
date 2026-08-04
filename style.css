@@ -680,6 +680,8 @@ body {
   font-family: 'ZCOOL KuaiLe', var(--font);
   animation: journalFade .35s ease;
 }
+/* 保证手账屏卡片在父容器里左右绝对对称 */
+.daily-screen.active { left: 10px; right: 10px; width: auto; }
 .daily-cover { overflow: hidden; }
 .daily-screen.active { display: flex; flex-direction: column; }
 @keyframes journalFade { from { opacity: 0; } to { opacity: 1; } }
@@ -703,7 +705,7 @@ body {
 /* 共用顶栏 */
 .top {
   position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between;
-  padding: calc(16px + env(safe-area-inset-top)) 18px 8px;
+  padding: calc(16px + env(safe-area-inset-top)) 14px 8px;
 }
 .top button, .top-btn {
   border: none; background: rgba(255,255,255,.18); color: #f0e8ff; border-radius: 999px;
@@ -714,9 +716,9 @@ body {
 
 /* 封面书本卡片 */
 .cover-book {
-  position: relative; z-index: 1; margin: 10px 16px 0;
+  position: relative; z-index: 1; margin: 10px 14px 0;
   background: linear-gradient(180deg, #efe7ff, #e0d3ff);
-  border-radius: 28px; padding: 18px 18px 22px; text-align: center;
+  border-radius: 28px; padding: 16px 14px 18px; text-align: center;
   box-shadow: 0 16px 38px rgba(40,20,80,.45), inset 0 0 0 1px rgba(255,255,255,.55);
   border: 1px solid rgba(160,120,230,.35);
 }
@@ -732,46 +734,46 @@ body {
   box-shadow: 0 8px 20px rgba(120,80,200,.35), inset 0 0 0 3px #fff;
 }
 .cover-cat-img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.cover-title { font-size: 24px; font-weight: 900; color: #5a3ba0; letter-spacing: 1px; }
-.cover-sub { font-size: 12px; color: #9b86c9; margin-top: 3px; letter-spacing: 2px; }
+.cover-title { font-size: 22px; font-weight: 900; color: #5a3ba0; letter-spacing: 1px; }
+.cover-sub { font-size: 11px; color: #9b86c9; margin-top: 2px; letter-spacing: 2px; }
 
-/* 封面迷你月历 */
+/* 封面迷你月历（紧凑版） */
 .cover-cal {
-  margin-top: 14px;
+  margin-top: 10px;
   background: rgba(255, 255, 255, .82);
-  border-radius: 18px;
-  padding: 12px 10px;
+  border-radius: 14px;
+  padding: 8px 6px;
   text-align: center;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
 }
 .cover-cal-head {
   display: flex; align-items: center; justify-content: space-between;
-  color: #5a3ba0; font-size: 14px; font-weight: 800; margin-bottom: 8px; padding: 0 2px;
+  color: #5a3ba0; font-size: 13px; font-weight: 800; margin-bottom: 3px; padding: 0 2px;
 }
-.cover-cal-mv { display: flex; gap: 6px; }
+.cover-cal-mv { display: flex; gap: 5px; }
 .cover-cal-mv button {
-  border: none; width: 22px; height: 22px; border-radius: 50%;
-  background: #7a4fd0; color: #fff; font-size: 12px; cursor: pointer;
+  border: none; width: 20px; height: 20px; border-radius: 50%;
+  background: #7a4fd0; color: #fff; font-size: 10px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; line-height: 1;
 }
 .cover-cal-week {
-  display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px;
+  display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 2px;
 }
-.cover-cal-week span { text-align: center; font-size: 10px; color: #b8a9d6; font-weight: 700; }
-.cover-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cover-cal-week span { text-align: center; font-size: 9px; color: #b8a9d6; font-weight: 700; }
+.cover-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
 .cover-cal-day {
-  aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-size: 11px; color: #6b5a8c; position: relative; background: rgba(255, 255, 255, .55);
+  aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 10px; color: #6b5a8c; position: relative; background: rgba(255, 255, 255, .55);
   font-weight: 700;
 }
 .cover-cal-day.empty { background: transparent; }
 .cover-cal-day.has { background: #f3ecff; color: #7a4fd0; }
 .cover-cal-day.today { background: #7a4fd0; color: #fff; }
-.cover-cal-day .dot { position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: #c86bff; }
+.cover-cal-day .dot { position: absolute; bottom: 3px; width: 3px; height: 3px; border-radius: 50%; background: #c86bff; }
 
 /* 封面月份选择 + 底部按钮 */
-.cover-controls { position: relative; z-index: 1; margin: 14px 16px 0; }
-.cover-month-label { color: #d9cdf2; font-size: 12px; display: block; margin-bottom: 6px; }
+.cover-controls { position: relative; z-index: 1; margin: 12px 14px 0; }
+.cover-month-label { color: #d9cdf2; font-size: 12px; display: block; margin-bottom: 4px; }
 .cover-picker {
   display: flex; align-items: center; gap: 8px; background: rgba(30, 20, 50, .55); border: none;
   border-radius: 14px; padding: 10px 14px; color: #fff; font-size: 14px; width: 100%;
@@ -782,7 +784,7 @@ body {
 /* 封面底部按钮 */
 .cover-btns {
   position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px;
-  margin-top: auto; padding: 14px 16px calc(20px + env(safe-area-inset-bottom));
+  margin-top: auto; padding: 12px 14px calc(18px + env(safe-area-inset-bottom));
 }
 .cover-btn {
   border: none; border-radius: 16px; padding: 14px; font-size: 15px; font-weight: 800;
@@ -794,11 +796,15 @@ body {
 
 @media (max-height: 720px) {
   .cover-cat { width: 64px; height: 64px; margin: 8px auto 4px; }
-  .cover-title { font-size: 20px; }
-  .cover-cal { margin-top: 10px; padding: 8px 8px; }
-  .cover-cal-day { font-size: 10px; }
+  .cover-title { font-size: 18px; }
+  .cover-cal { margin-top: 8px; padding: 6px 5px; border-radius: 12px; }
+  .cover-cal-head { font-size: 12px; margin-bottom: 2px; }
+  .cover-cal-mv button { width: 18px; height: 18px; font-size: 9px; }
+  .cover-cal-week span { font-size: 8px; }
+  .cover-cal-day { font-size: 9px; border-radius: 5px; }
   .cover-controls { margin-top: 10px; }
-  .cover-book { margin-top: 6px; padding: 14px 12px 16px; }
+  .cover-book { margin-top: 6px; padding: 12px 12px 14px; }
+  .cover-btns { padding: 10px 14px calc(14px + env(safe-area-inset-bottom)); }
 }
 
 /* ② 月度手账本（单页整月 + 翻页 + 详情弹层） */
