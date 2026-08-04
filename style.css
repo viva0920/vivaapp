@@ -740,39 +740,39 @@ body {
 .cover-title { font-size: 20px; font-weight: 900; color: #5a3ba0; letter-spacing: 1px; }
 .cover-sub { font-size: 10px; color: #9b86c9; margin-top: 1px; letter-spacing: 2px; }
 
-/* 封面迷你月历（紧凑版） */
+/* 封面迷你月历（极简紧凑版） */
 .cover-cal {
-  margin-top: 8px;
+  margin-top: 6px;
   background: rgba(255, 255, 255, .82);
-  border-radius: 12px;
-  padding: 6px 5px;
+  border-radius: 10px;
+  padding: 4px 3px;
   text-align: center;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
 }
 .cover-cal-head {
   display: flex; align-items: center; justify-content: space-between;
-  color: #5a3ba0; font-size: 12px; font-weight: 800; margin-bottom: 2px; padding: 0 2px;
+  color: #5a3ba0; font-size: 11px; font-weight: 800; margin-bottom: 1px; padding: 0 2px;
 }
-.cover-cal-mv { display: flex; gap: 4px; }
+.cover-cal-mv { display: flex; gap: 3px; }
 .cover-cal-mv button {
-  border: none; width: 18px; height: 18px; border-radius: 50%;
-  background: #7a4fd0; color: #fff; font-size: 9px; cursor: pointer;
+  border: none; width: 16px; height: 16px; border-radius: 50%;
+  background: #7a4fd0; color: #fff; font-size: 8px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; line-height: 1;
 }
 .cover-cal-week {
-  display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 1px;
+  display: grid; grid-template-columns: repeat(7, 1fr);
 }
-.cover-cal-week span { text-align: center; font-size: 8px; color: #b8a9d6; font-weight: 700; }
-.cover-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cover-cal-week span { text-align: center; font-size: 7px; color: #b8a9d6; font-weight: 700; line-height: 14px; }
+.cover-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
 .cover-cal-day {
-  aspect-ratio: 1; border-radius: 5px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-size: 9px; color: #6b5a8c; position: relative; background: rgba(255, 255, 255, .55);
-  font-weight: 700;
+  height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: #6b5a8c; position: relative; background: rgba(255, 255, 255, .55);
+  font-weight: 700; line-height: 1;
 }
 .cover-cal-day.empty { background: transparent; }
 .cover-cal-day.has { background: #f3ecff; color: #7a4fd0; }
 .cover-cal-day.today { background: #7a4fd0; color: #fff; }
-.cover-cal-day .dot { position: absolute; bottom: 3px; width: 3px; height: 3px; border-radius: 50%; background: #c86bff; }
+.cover-cal-day .dot { position: absolute; bottom: 2px; width: 2px; height: 2px; border-radius: 50%; background: #c86bff; }
 
 /* 封面月份选择 + 底部按钮 */
 .cover-controls { position: relative; z-index: 1; margin: 8px 14px 0; flex-shrink: 0; }
@@ -802,11 +802,11 @@ body {
   .cover-cat { width: 58px; height: 58px; margin: 6px auto 3px; }
   .cover-title { font-size: 17px; }
   .cover-sub { font-size: 9px; }
-  .cover-cal { margin-top: 6px; padding: 5px 4px; border-radius: 10px; }
-  .cover-cal-head { font-size: 11px; margin-bottom: 1px; }
-  .cover-cal-mv button { width: 16px; height: 16px; font-size: 8px; }
-  .cover-cal-week span { font-size: 7px; }
-  .cover-cal-day { font-size: 8px; border-radius: 4px; }
+  .cover-cal { margin-top: 4px; padding: 3px 2px; border-radius: 8px; }
+  .cover-cal-head { font-size: 10px; margin-bottom: 0; }
+  .cover-cal-mv button { width: 14px; height: 14px; font-size: 7px; }
+  .cover-cal-week span { font-size: 6px; line-height: 12px; }
+  .cover-cal-day { height: 18px; font-size: 7px; border-radius: 3px; }
   .cover-controls { margin-top: 6px; }
   .cover-picker { padding: 6px 10px; font-size: 12px; }
   .cover-book { margin-top: 4px; padding: 10px 12px 12px; border-radius: 20px; }
