@@ -26,6 +26,8 @@ html, body {
   background: linear-gradient(160deg, #ffe3ef 0%, #e9f7ff 50%, #f3ecff 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -140,7 +142,7 @@ body {
 
 .module { display: none; animation: fade .3s ease; }
 .module.active { display: block; }
-@keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 .module-head h1 { font-size: 24px; margin: 4px 0 2px; }
 .subtitle { margin: 0 0 14px; color: var(--ink-soft); font-size: 13px; }
@@ -669,12 +671,12 @@ body {
 /* ===== 日常手账本模块（日系手绘风） ===== */
 .daily-screen {
   position: fixed;
-  top: calc(54px + env(safe-area-inset-top));
-  bottom: calc(70px + env(safe-area-inset-bottom));
+  top: 0; bottom: 0;
   left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 460px;
   background: #fbf6f0;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
   display: none; z-index: 50;
   font-family: 'ZCOOL KuaiLe', var(--font);
   animation: journalFade .35s ease;
@@ -701,7 +703,7 @@ body {
 /* 共用顶栏 */
 .top {
   position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 18px 8px;
+  padding: calc(16px + env(safe-area-inset-top)) 18px 8px;
 }
 .top button, .top-btn {
   border: none; background: rgba(255,255,255,.18); color: #f0e8ff; border-radius: 999px;
