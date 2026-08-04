@@ -670,12 +670,13 @@ body {
 
 /* ===== 日常手账本模块（日系手绘风） ===== */
 .daily-screen {
-  position: fixed;
-  top: 0; bottom: 0; left: 0; right: 0;
-  width: 100%; max-width: 100%;
+  position: absolute;
+  top: 10px; left: 10px; right: 10px; bottom: 10px;
   background: #fbf6f0;
   overflow: hidden; overscroll-behavior: none;
   display: none; z-index: 50;
+  border-radius: 22px;
+  box-shadow: 0 12px 34px rgba(20,10,40,.35);
   font-family: 'ZCOOL KuaiLe', var(--font);
   animation: journalFade .35s ease;
 }
