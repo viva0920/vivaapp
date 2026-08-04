@@ -696,7 +696,6 @@ body {
 /* ① 封面页 + ② 月度手账本（严格对齐 首页.png / 月历.png） */
 .daily-cover {
   background: linear-gradient(180deg, #3b2169 0%, #2a1850 100%);
-  position: relative;
   display: flex; flex-direction: column;
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
@@ -817,7 +816,7 @@ body {
 /* ② 月度手账本（单页整月 + 翻页 + 详情弹层） */
 .daily-monthbook {
   background: linear-gradient(180deg, #3b2169 0%, #2a1850 100%);
-  position: relative; overflow: hidden; height: 100%;
+  overflow: hidden; height: 100%;
   font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 .monthbook-stars { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
