@@ -2882,82 +2882,108 @@
     cal.innerHTML = '<div class="cover-cal-head">' + y + '年' + m + '月</div><div class="cover-cal-grid">' + head + cells + '</div>';
   }
 
+  function shiftMonth(ym, delta) {
+    let [y, m] = ym.split("-").map(Number);
+    m += delta;
+    if (m > 12) { m = 1; y++; }
+    if (m < 1) { m = 12; y--; }
+    return y + "-" + String(m).padStart(2, "0");
+  }
+
   function renderMonthBook() {
     const ym = monthbookYm;
     const [y, m] = ym.split("-").map(Number);
     const title = $("#monthbookTitle");
     if (title) title.textContent = y + "年" + m + "月";
-    const no = $("#monthbookNo");
-    if (no) no.textContent = "month / " + String(m).padStart(2, "0");
+    const cur = $("#monthbookCur");
+    if (cur) cur.textContent = y + "年" + m + "月";
+    const sub = $("#monthbookCursub");
+    if (sub) sub.textContent = "第 " + m + " 月 · 点日期看详情，点箭头翻月";
+
     const entries = dailyEntriesOfMonth(ym);
-    const left = $("#monthbookGridLeft");
-    const right = $("#monthbookGridRight");
+    const grid = $("#monthbookGrid");
     const empty = $("#monthbookEmpty");
     const desk = $("#monthbookDesk");
     const bottom = $("#monthbookBottom");
-    if (!entries.length) {
-      if (left) left.innerHTML = "";
-      if (right) right.innerHTML = "";
-      if (empty) empty.style.display = "block";
+    if (!grid) return;
+
+    if (entries.length) {
+      if (desk) desk.style.display = "flex";
+      if (empty) empty.style.display = "none";
+    } else {
       if (desk) desk.style.display = "none";
-      if (bottom) bottom.style.display = "none";
-      return;
+      if (empty) empty.style.display = "block";
     }
-    if (empty) empty.style.display = "none";
-    if (desk) desk.style.display = "flex";
     if (bottom) bottom.style.display = "flex";
 
     const today = todayStr();
-    const firstDay = new Date(y, m - 1, 1);
-    const startWeek = firstDay.getDay();
+    const startWeek = new Date(y, m - 1, 1).getDay();
     const daysInMonth = new Date(y, m, 0).getDate();
     const byDate = {};
-    entries.forEach((e) => { byDate[e.date] = e; });
+    entries.forEach((e) => { (byDate[e.date] = byDate[e.date] || []).push(e); });
+    const moodEmoji = (k) => { const x = DAILY_MOODS.find((d) => d.key === k); return x ? x.label.split(" ")[0] : ""; };
 
-    function buildCell(idx) {
-      const dayNum = idx - startWeek + 1;
-      if (dayNum < 1 || dayNum > daysInMonth) {
-        return '<div class="monthbook-cell monthbook-cell-empty"></div>';
-      }
+    let html = "";
+    for (let i = 0; i < 42; i++) {
+      const dayNum = i - startWeek + 1;
+      if (dayNum < 1 || dayNum > daysInMonth) { html += '<div class="monthbook-cell monthbook-cell-empty"></div>'; continue; }
       const dateStr = y + "-" + String(m).padStart(2, "0") + "-" + String(dayNum).padStart(2, "0");
       const isToday = dateStr === today;
-      const e = byDate[dateStr];
-      const has = !!e;
-      let content = '<span class="monthbook-cell-day' + (isToday ? " today" : "") + '">' + dayNum + '</span>';
-      if (e) {
-        const text = (e.text || "").replace(/\s+/g, " ").trim();
-        const snippet = text.length > 10 ? text.slice(0, 10) + "…" : text;
-        const img = (e.images && e.images[0]) ? '<img src="' + e.images[0] + '" class="monthbook-cell-img" alt="" />' : "";
-        const sticker = e.sticker ? '<span class="monthbook-cell-sticker">' + stickerSvg(e.sticker) + '</span>' : "";
-        content += '<div class="monthbook-cell-body">' +
-          (snippet ? '<span class="monthbook-cell-text">' + escapeHtml(snippet) + '</span>' : "") +
-          img + sticker + '</div>';
+      const list = byDate[dateStr] || [];
+      const has = list.length > 0;
+      const first = list[0] || null;
+      let inner = '<span class="monthbook-cell-day' + (isToday ? " today" : "") + '">' + dayNum + "</span>";
+      if (first) {
+        const me = moodEmoji(first.mood);
+        let thumbs = "";
+        (first.images || []).slice(0, 3).forEach((src) => { thumbs += '<img src="' + src + '" class="monthbook-cell-img" alt="" />'; });
+        const sticker = first.sticker ? '<span class="monthbook-cell-sticker">' + stickerSvg(first.sticker) + "</span>" : "";
+        const more = list.length > 1 ? '<span class="monthbook-cell-more">+' + (list.length - 1) + "</span>" : "";
+        inner += '<div class="monthbook-cell-body">' +
+          (me ? '<span class="monthbook-cell-mood">' + me + "</span>" : "") +
+          (thumbs ? '<div class="monthbook-cell-thumbs">' + thumbs + "</div>" : "") +
+          sticker + more + "</div>";
       }
-      return '<div class="monthbook-cell' + (has ? " has" : "") + (isToday ? " today" : "") + '" data-date="' + dateStr + '" data-has="' + has + '">' + content + '</div>';
+      html += '<div class="monthbook-cell' + (has ? " has" : "") + (isToday ? " today" : "") + '" data-date="' + dateStr + '">' + inner + "</div>";
     }
+    grid.innerHTML = html;
 
-    if (left) left.innerHTML = Array.from({length: 21}, (_, i) => buildCell(i)).join("");
-    if (right) right.innerHTML = Array.from({length: 21}, (_, i) => buildCell(i + 21)).join("");
-
-    [left, right].forEach((grid) => {
-      if (!grid) return;
-      $$(".monthbook-cell", grid).forEach((cell) => {
-        cell.addEventListener("click", () => {
-          const date = cell.dataset.date;
-          const has = cell.dataset.has === "true";
-          if (has && byDate[date]) {
-            const list = dailyEntriesOfMonth(monthbookYm);
-            readerIdx = list.findIndex((e) => e.date === date);
-            if (readerIdx < 0) readerIdx = 0;
-            readerYm = monthbookYm;
-            showDailyScreen("reader");
-          } else {
-            openEditor(date);
-            showDailyScreen("editor");
-          }
-        });
+    $$(".monthbook-cell", grid).forEach((cell) => {
+      cell.addEventListener("click", () => {
+        const date = cell.dataset.date;
+        const list = byDate[date] || [];
+        if (list.length) openDaySheet(date, list);
+        else { openEditor({ date: date }); showDailyScreen("editor"); }
       });
     });
+  }
+
+  function openDaySheet(dateStr, list) {
+    const body = $("#sheetBody");
+    if (!body) return;
+    const p = dateStr.split("-");
+    let html = '<div class="sheet-date">' + parseInt(p[1], 10) + "月" + parseInt(p[2], 10) + "日</div>";
+    list.forEach((e) => {
+      const x = DAILY_MOODS.find((d) => d.key === e.mood);
+      const ml = x ? x.label : "";
+      html += '<div class="sheet-entry">';
+      if (ml) html += '<div class="sheet-mood">' + ml + "</div>";
+      if (e.text) html += '<div class="sheet-text">' + escapeHtml(e.text) + "</div>";
+      if (e.images && e.images.length) {
+        html += '<div class="sheet-photos">' + e.images.map((s) => '<img src="' + s + '" alt="" />').join("") + "</div>";
+      }
+      if (e.sticker) html += '<div class="sheet-stk">' + stickerSvg(e.sticker) + "</div>";
+      html += "</div>";
+    });
+    body.innerHTML = html;
+    const sheet = $("#monthbookSheet"), scrim = $("#monthbookScrim");
+    if (sheet) sheet.classList.add("open");
+    if (scrim) scrim.classList.add("show");
+  }
+  function closeDaySheet() {
+    const sheet = $("#monthbookSheet"), scrim = $("#monthbookScrim");
+    if (sheet) sheet.classList.remove("open");
+    if (scrim) scrim.classList.remove("show");
   }
 
   function renderReader() {
@@ -3190,6 +3216,10 @@
   $("#monthbookFlip").addEventListener("click", () => { readerYm = monthbookYm; readerIdx = 0; showDailyScreen("reader"); });
   $("#monthbookAdd").addEventListener("click", () => openEditor({ date: defaultNewDate(monthbookYm) }));
   $("#monthbookEmptyNew").addEventListener("click", () => openEditor({ date: defaultNewDate(monthbookYm) }));
+  $("#monthbookPrev").addEventListener("click", () => { monthbookYm = shiftMonth(monthbookYm, -1); renderMonthBook(); });
+  $("#monthbookNext").addEventListener("click", () => { monthbookYm = shiftMonth(monthbookYm, 1); renderMonthBook(); });
+  $("#monthbookScrim").addEventListener("click", closeDaySheet);
+  $("#coverOverview").addEventListener("click", () => showDailyScreen("overview"));
   $("#editorBack").addEventListener("click", () => showDailyScreen("monthbook"));
   $("#editorSave").addEventListener("click", saveEntry);
   $("#editorDelete").addEventListener("click", deleteEntry);
