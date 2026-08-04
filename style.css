@@ -674,7 +674,7 @@ body {
   position: absolute;
   top: 10px; bottom: 10px;
   left: 50%; transform: translateX(-50%);
-  width: calc(100% - 20px);
+  width: calc(100% - 12px);
   background: #fbf6f0;
   overflow: hidden; overscroll-behavior: none;
   display: none; z-index: 50;
