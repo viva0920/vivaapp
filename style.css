@@ -49,6 +49,7 @@ body {
   box-shadow: 0 0 40px rgba(255, 150, 190, 0.25);
   position: relative;
   overflow: hidden;
+  scrollbar-gutter: stable both-edges;
 }
 
 /* ===== 顶部备份条 ===== */
@@ -671,7 +672,9 @@ body {
 /* ===== 日常手账本模块（日系手绘风） ===== */
 .daily-screen {
   position: absolute;
-  top: 10px; left: 10px; right: 10px; bottom: 10px;
+  inset: 10px;
+  margin: 0 auto;
+  width: calc(100% - 20px);
   background: #fbf6f0;
   overflow: hidden; overscroll-behavior: none;
   display: none; z-index: 50;
@@ -680,8 +683,6 @@ body {
   font-family: 'ZCOOL KuaiLe', var(--font);
   animation: journalFade .35s ease;
 }
-/* 保证手账屏卡片在父容器里左右绝对对称 */
-.daily-screen.active { left: 10px; right: 10px; width: auto; }
 .daily-cover { overflow: hidden; }
 .daily-screen.active { display: flex; flex-direction: column; }
 @keyframes journalFade { from { opacity: 0; } to { opacity: 1; } }
