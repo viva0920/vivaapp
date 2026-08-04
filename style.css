@@ -688,50 +688,69 @@ body {
   text-align: center; outline: none;
 }
 
-/* ① 封面页 */
-.cover-book {
-  min-height: 100%;
-  background:
-    radial-gradient(circle at 22% 18%, #fff7ea 0, transparent 55%),
-    radial-gradient(circle at 82% 78%, #f3e6ff 0, transparent 55%),
-    linear-gradient(160deg, #ffe7d3 0%, #ffd9e2 52%, #e6d6ff 100%);
-  border-radius: 26px; margin: 14px; padding: 30px 22px 34px;
-  box-shadow: inset 0 0 0 3px rgba(255,255,255,0.6), 0 16px 38px rgba(190,150,170,0.3);
-  text-align: center; position: relative; overflow: hidden;
+/* ① 封面页（淡紫星空统一风格） */
+.daily-cover {
+  background: linear-gradient(180deg, #4a2f7a 0%, #3a2466 38%, #2a1850 100%);
+  position: relative; overflow-y: auto;
 }
-.cover-book::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.55) 1px, transparent 1.4px);
-  background-size: 15px 15px; opacity: .5;
+.cover-stars { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.cv-star { position: absolute; color: #fff; opacity: .8; animation: cvTw 3s ease-in-out infinite; }
+@keyframes cvTw { 0%,100% { opacity: .25; transform: scale(.8); } 50% { opacity: .95; transform: scale(1.15); } }
+.top {
+  position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 4px;
+}
+.top button {
+  border: none; background: rgba(255,255,255,.16); color: #f0e8ff; border-radius: 12px;
+  padding: 7px 12px; font-size: 13px; font-family: inherit; cursor: pointer; backdrop-filter: blur(4px);
+}
+.top .title { color: #fff; font-size: 17px; font-weight: 800; letter-spacing: .5px; }
+.cover-book {
+  position: relative; z-index: 1; min-height: 100%;
+  background: linear-gradient(180deg, #efe7ff 0%, #e3d6ff 100%);
+  border-radius: 26px; margin: 8px 14px 16px; padding: 28px 22px 32px;
+  box-shadow: 0 18px 40px rgba(60,30,110,.45), inset 0 0 0 1px rgba(255,255,255,.6);
+  border: 1px solid rgba(160,120,230,.4); text-align: center; overflow: hidden;
 }
 .cover-ribbon {
-  position: relative; z-index: 1; display: inline-block; background: #fff;
-  color: #c98aa6; font-size: 12px; padding: 5px 16px; border-radius: 20px;
-  box-shadow: 0 3px 8px rgba(180,140,160,.2); letter-spacing: 3px;
+  position: relative; z-index: 1; display: inline-block;
+  background: linear-gradient(135deg, #9a6bff, #c86bff); color: #fff;
+  font-size: 12px; padding: 5px 16px; border-radius: 20px; letter-spacing: 2px;
+  box-shadow: 0 4px 12px rgba(150,90,255,.5);
 }
-.cover-cat { position: relative; z-index: 1; width: 170px; height: 170px; display: block; margin: 8px auto 2px; filter: drop-shadow(0 8px 16px rgba(163,106,69,.18)); transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
+.cover-cat {
+  position: relative; z-index: 1; width: 120px; height: 120px; display: block; margin: 14px auto 4px;
+  border-radius: 50%; object-fit: contain; padding: 12px;
+  background: radial-gradient(circle at 50% 35%, #fff, #f0e6ff);
+  box-shadow: 0 8px 20px rgba(120,80,200,.35), inset 0 0 0 3px #fff;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+}
 .cover-book:active .cover-cat { transform: scale(1.05) rotate(-2deg); }
-.cover-title { position: relative; z-index: 1; font-size: 36px; color: #7a5a6e; text-shadow: 0 2px 0 #fff; letter-spacing: 4px; }
-.cover-sub { position: relative; z-index: 1; font-size: 13px; color: #ab8aa2; margin-bottom: 18px; }
+.cover-title { position: relative; z-index: 1; font-size: 26px; color: #5a3ba0; letter-spacing: 2px; }
+.cover-sub { position: relative; z-index: 1; font-size: 12px; color: #9b86c9; margin-bottom: 16px; letter-spacing: 2px; }
 .cover-cal {
-  position: relative; z-index: 1; background: rgba(255,255,255,0.7); border-radius: 16px;
-  padding: 10px 12px; max-width: 230px; margin: 0 auto; box-shadow: 0 4px 12px rgba(180,150,170,.15);
+  position: relative; z-index: 1; background: rgba(255,255,255,.72); border-radius: 16px;
+  padding: 10px 12px; max-width: 240px; margin: 0 auto; box-shadow: 0 4px 14px rgba(120,90,180,.18);
 }
-.cover-cal-head { font-size: 13px; color: #b07f96; margin-bottom: 6px; }
+.cover-cal-head { font-size: 13px; color: #7a4fd0; margin-bottom: 6px; font-weight: 700; }
 .cover-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.cover-cal-grid span { font-size: 10px; color: #c9b3bd; }
-.cover-cal-grid b { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; border-radius: 50%; font-size: 11px; color: #8a6f80; font-weight: 400; }
-.cover-cal-grid b.today { background: #ffb3d1; color: #fff; box-shadow: 0 2px 6px rgba(255,140,180,.4); }
-.cover-cal-grid b.has { background: #fff0d8; }
-.cover-controls { position: relative; z-index: 1; margin-top: 18px; }
-.cover-month-label { display: block; font-size: 13px; color: #ab8aa2; margin-bottom: 6px; }
+.cover-cal-grid span { font-size: 10px; color: #a991d6; font-weight: 700; }
+.cover-cal-grid b {
+  display: flex; align-items: center; justify-content: center; aspect-ratio: 1; border-radius: 50%;
+  font-size: 11px; color: #6b5a8c; position: relative;
+}
+.cover-cal-grid b.has { background: #f3ecff; color: #7a4fd0; font-weight: 800; }
+.cover-cal-grid b.has::after { content: ''; position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: #c86bff; }
+.cover-cal-grid b.today { background: #8a5fe0; color: #fff; }
+.cover-controls { position: relative; z-index: 1; margin-top: 16px; }
+.cover-month-label { display: block; font-size: 13px; color: #7a6a9a; margin-bottom: 6px; }
 .cover-btns { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
 .cover-btn {
   border: none; border-radius: 18px; padding: 15px; font-family: inherit; font-size: 16px;
-  background: #fff; color: #c98aa6; box-shadow: 0 6px 14px rgba(190,150,170,.25); cursor: pointer;
+  background: #fff; color: #7a4fd0; box-shadow: 0 6px 14px rgba(120,90,180,.22); cursor: pointer;
   transition: transform .12s;
 }
-.cover-btn.primary { background: linear-gradient(135deg, #ffb3d1, #ff8fb4); color: #fff; }
+.cover-btn.primary { background: linear-gradient(135deg, #9a6bff, #c86bff); color: #fff; }
 .cover-btn:active { transform: scale(.97); }
 
 /* ② 月度手账本整合页（参考手账.png：淡紫色星空双页月历） */
@@ -978,3 +997,81 @@ body {
 }
 .daily-fab.hidden { display: none; }
 @media (max-width: 460px) { .daily-fab { right: 14px; bottom: calc(78px + env(safe-area-inset-bottom)); } }
+
+
+/* ② 月度手账本（单页整月 + 可翻页 + 详情弹层）— 覆盖上方旧双页样式 */
+.daily-monthbook {
+  background: linear-gradient(180deg, #4a2f7a 0%, #3a2466 38%, #2a1850 100%);
+  position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;
+}
+.monthbook-monthnav {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 2px 16px 8px; position: relative; z-index: 1;
+}
+.monthbook-arrow {
+  width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255,255,255,.2); color: #fff; font-size: 18px; line-height: 1;
+}
+.monthbook-cur { color: #fff; font-size: 18px; font-weight: 800; text-align: center; }
+.monthbook-cursub { color: #cdbcf2; font-size: 11px; text-align: center; margin-top: 1px; letter-spacing: 1px; }
+.monthbook-desk {
+  flex: 1; min-height: 0; display: flex; align-items: stretch; justify-content: center;
+  padding: 4px 14px 8px; overflow-y: auto; position: relative; z-index: 1; scrollbar-width: none;
+}
+.monthbook-book {
+  width: 100%; max-width: 460px; background: rgba(255,255,255,.94);
+  border-radius: 20px; padding: 12px 10px 14px;
+  box-shadow: 0 14px 34px rgba(20,10,40,.4); display: flex; flex-direction: column;
+}
+.monthbook-weekhead { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 6px; }
+.monthbook-weekhead span { text-align: center; font-size: 12px; color: #9a86c9; font-weight: 700; }
+.monthbook-grid {
+  flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px;
+}
+.monthbook-cell {
+  background: #fff; border-radius: 12px; border: 1px solid rgba(180,160,220,.18);
+  padding: 4px 3px; display: flex; flex-direction: column; align-items: center; position: relative;
+  cursor: pointer; min-height: 52px; box-shadow: 0 1px 4px rgba(120,90,180,.12);
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+.monthbook-cell:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(120,90,180,.25); }
+.monthbook-cell-empty { background: transparent; border-color: transparent; box-shadow: none; pointer-events: none; }
+.monthbook-cell.has { background: linear-gradient(180deg, #fff, #f3ecff); }
+.monthbook-cell.today { border-color: #b9a3e8; box-shadow: inset 0 0 0 2px #b9a3e8; }
+.monthbook-cell-day { font-size: 13px; font-weight: 800; color: #6b5a8c; }
+.monthbook-cell-day.today {
+  background: #8a5fe0; color: #fff; width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 12px;
+}
+.monthbook-cell-body { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.monthbook-cell-mood { font-size: 13px; margin-top: 1px; line-height: 1; }
+.monthbook-cell-thumbs { display: flex; gap: 2px; margin-top: 2px; }
+.monthbook-cell-thumbs img,
+.monthbook-cell-img { width: 14px; height: 14px; border-radius: 3px; object-fit: cover; display: block; }
+.monthbook-cell-sticker { position: absolute; right: 3px; bottom: 3px; width: 18px; height: 18px; }
+.monthbook-cell-more {
+  position: absolute; left: 3px; bottom: 3px; font-size: 9px; color: #a991d6; font-weight: 700;
+  background: rgba(255,255,255,.85); border-radius: 8px; padding: 0 3px;
+}
+.monthbook-empty { color: #e9def7; }
+.monthbook-scrim {
+  position: absolute; inset: 0; background: rgba(10,5,25,.45); z-index: 5;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.monthbook-scrim.show { opacity: 1; pointer-events: auto; }
+.monthbook-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: #fff;
+  border-radius: 24px 24px 0 0; padding: 16px 20px 26px; transform: translateY(110%);
+  transition: transform .32s cubic-bezier(.2,.8,.2,1); box-shadow: 0 -10px 40px rgba(0,0,0,.4);
+  max-height: 72%; overflow-y: auto;
+}
+.monthbook-sheet.open { transform: translateY(0); }
+.sheet-grab { width: 40px; height: 4px; border-radius: 2px; background: #e0d6f0; margin: 0 auto 12px; }
+.sheet-date { font-size: 18px; font-weight: 800; color: #5a3ba0; margin-bottom: 10px; }
+.sheet-entry { padding: 10px 0; border-bottom: 1px solid #f0eaf8; }
+.sheet-entry:last-child { border-bottom: none; }
+.sheet-mood { font-size: 13px; background: #f3ecff; color: #7a4fd0; padding: 3px 10px; border-radius: 12px; display: inline-block; margin-bottom: 6px; }
+.sheet-text { font-size: 15px; line-height: 1.7; color: #3a2c52; white-space: pre-wrap; word-break: break-word; }
+.sheet-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.sheet-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; border: 1px solid #efe3f4; }
+.sheet-stk { width: 30px; height: 30px; margin-top: 8px; }
