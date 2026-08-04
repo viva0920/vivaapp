@@ -991,6 +991,11 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
 }
 .paper-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .paper-meta label { font-size: 13px; color: #b07f96; }
