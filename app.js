@@ -2811,6 +2811,7 @@
   const STICKER_RABBIT = '<svg viewBox="0 0 120 120" aria-hidden="true"><ellipse cx="60" cy="104" rx="40" ry="9" fill="#f3e8ff"/><path d="M48,40 Q40,4 52,8 Q60,16 56,42" fill="#fff" stroke="#9a8fb0" stroke-width="3" stroke-linejoin="round"/><path d="M72,40 Q80,4 68,8 Q60,16 64,42" fill="#fff" stroke="#9a8fb0" stroke-width="3" stroke-linejoin="round"/><path d="M50,40 Q46,16 53,12 M70,40 Q74,16 67,12" fill="#ffd9ea"/><path d="M36,92 C32,70 38,52 56,48 C74,44 88,56 88,76 C88,90 80,98 60,98 C44,98 38,96 36,92 Z" fill="#fff" stroke="#9a8fb0" stroke-width="3"/><circle cx="50" cy="68" r="6.5" fill="#9a8fb0"/><circle cx="52" cy="66" r="2.4" fill="#fff"/><circle cx="72" cy="68" r="6.5" fill="#9a8fb0"/><circle cx="74" cy="66" r="2.4" fill="#fff"/><ellipse cx="42" cy="76" rx="5" ry="3" fill="#ffc2dd"/><ellipse cx="80" cy="76" rx="5" ry="3" fill="#ffc2dd"/><path d="M57,74 L63,74 L60,78 Z" fill="#ff9ec4"/><path d="M60,78 C56,84 52,80 52,77 M60,78 C64,84 68,80 68,77" fill="none" stroke="#9a8fb0" stroke-width="2" stroke-linecap="round"/><ellipse cx="50" cy="92" rx="6" ry="4" fill="#fff" stroke="#9a8fb0" stroke-width="2.5"/><ellipse cx="72" cy="92" rx="6" ry="4" fill="#fff" stroke="#9a8fb0" stroke-width="2.5"/></svg>';
   function stickerSvg(kind) {
     if (kind === "cat") return '<img class="sticker-img" src="sticker-cat.png" alt="小猫" />';
+    if (kind === "dog") return '<img class="sticker-img" src="sticker-dog.png" alt="小狗" />';
     if (kind === "rabbit") return '<img class="sticker-img" src="sticker-rabbit.png" alt="小兔" />';
     return "";
   }
