@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -92,6 +92,7 @@
         <div class="cal-toggle">
           <button class="cal-tab active" data-view="cal">📅 月历</button>
           <button class="cal-tab" data-view="chart">📊 图表</button>
+          <button class="cal-tab" data-view="ren">🤝 人情</button>
         </div>
 
         <div class="cal-card" id="calCard">
@@ -117,12 +118,81 @@
           <div id="pieEmpty" class="empty-hint">这个月还没有记录哦 🐣</div>
         </div>
 
+        <div class="ren-card" id="renCard" style="display:none">
+          <div class="ren-sum">
+            <div class="ren-sum-card gift">
+              <div class="ren-sum-label">待回礼</div>
+              <div class="ren-sum-value"><span id="renGiftCount">0</span> 人</div>
+            </div>
+            <div class="ren-sum-card recv">
+              <div class="ren-sum-label">待收款</div>
+              <div class="ren-sum-value"><span id="renRecvCount">0</span> 笔</div>
+            </div>
+            <div class="ren-sum-card pay">
+              <div class="ren-sum-label">待付款</div>
+              <div class="ren-sum-value"><span id="renPayCount">0</span> 笔</div>
+            </div>
+          </div>
+
+          <div class="ren-list" id="renList"></div>
+          <p class="ren-empty" id="renEmpty" style="display:none">还没有人情往来记录，点下面添加吧 💝</p>
+
+          <form id="renForm" class="ren-form">
+            <div class="ren-form-title">➕ 添加往来</div>
+            <div class="field">
+              <label>对象</label>
+              <input type="text" id="renPerson" placeholder="谁？比如 张三" required />
+            </div>
+            <div class="field">
+              <label>类型</label>
+              <select id="renType" required>
+                <option value="gift_out">🎁 送礼</option>
+                <option value="gift_in">🎉 收礼</option>
+                <option value="lend">💸 借出</option>
+                <option value="borrow">🤲 借入</option>
+                <option value="repay">✅ 还款</option>
+                <option value="collect">💰 收款</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>金额</label>
+              <input type="number" id="renAmount" inputmode="decimal" step="0.01" min="0" placeholder="0.00（送礼/收礼可留空）" />
+            </div>
+            <div class="field">
+              <label>事由</label>
+              <select id="renReason">
+                <option value="生日">生日</option>
+                <option value="结婚">结婚</option>
+                <option value="乔迁">乔迁</option>
+                <option value="升学">升学</option>
+                <option value="周转">周转</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>日期</label>
+              <input type="date" id="renDate" />
+            </div>
+            <button type="submit" class="primary-btn">保存往来</button>
+          </form>
+        </div>
+
         <div class="modal-mask" id="dayModal">
           <div class="modal">
             <h3 id="dayModalTitle">明细</h3>
             <div id="dayModalBody"></div>
             <div class="modal-actions">
               <button class="ghost-btn" id="dayModalClose">关闭</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-mask" id="renModal">
+          <div class="modal">
+            <h3 id="renModalTitle">往来明细</h3>
+            <div id="renModalBody"></div>
+            <div class="modal-actions">
+              <button class="ghost-btn" id="renModalClose">关闭</button>
             </div>
           </div>
         </div>
@@ -784,6 +854,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=13"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>
