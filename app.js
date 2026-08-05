@@ -78,6 +78,7 @@
     bp: store.get("wb_bp", null),
     exLibrary: store.get("wb_exlib", []),
     daily: store.get("wb_daily", null),
+    renqing: store.get("wb_renqing", []),
     currentMonth: monthStr(),
     chartType: "expense",
     recType: "expense",
@@ -101,6 +102,7 @@
     store.set("wb_bp", state.bp);
     store.set("wb_exlib", state.exLibrary);
     store.set("wb_daily", state.daily);
+    store.set("wb_renqing", state.renqing);
   };
 
   /* =========================================================
@@ -113,6 +115,7 @@
       $$(".module").forEach((sec) => sec.classList.toggle("active", sec.id === "module-" + m));
       try { store.set("wb_last_module", m); } catch (e) {}
       if (m === "daily") { try { showDailyScreen("cover"); } catch (e) {} }
+      if (m === "account") renderRenqing();
     });
   });
 
@@ -152,6 +155,17 @@
     dayModalTitle: $("#dayModalTitle"),
     dayModalBody: $("#dayModalBody"),
     dayModalClose: $("#dayModalClose"),
+    renCard: $("#renCard"),
+    renList: $("#renList"),
+    renEmpty: $("#renEmpty"),
+    renGiftCount: $("#renGiftCount"),
+    renRecvCount: $("#renRecvCount"),
+    renPayCount: $("#renPayCount"),
+    renForm: $("#renForm"),
+    renModal: $("#renModal"),
+    renModalTitle: $("#renModalTitle"),
+    renModalBody: $("#renModalBody"),
+    renModalClose: $("#renModalClose"),
   };
 
   function refreshCats() {
@@ -398,6 +412,178 @@
   els.dayModalClose.addEventListener("click", () => els.dayModal.classList.remove("show"));
   els.dayModal.addEventListener("click", (e) => {
     if (e.target === els.dayModal) els.dayModal.classList.remove("show");
+  });
+
+  /* ===== 人情往来 ===== */
+  const REN_META = {
+    gift_out: { icon: "🎁", label: "送礼", money: false },
+    gift_in: { icon: "🎉", label: "收礼", money: false },
+    lend: { icon: "💸", label: "借出", money: true },
+    borrow: { icon: "🤲", label: "借入", money: true },
+    repay: { icon: "✅", label: "还款", money: true },
+    collect: { icon: "💰", label: "收款", money: true },
+  };
+
+  // 按人聚合应收/应付/礼金
+  function aggregateRenqing() {
+    const map = {};
+    state.renqing.forEach((r) => {
+      const p = (r.person || "").trim();
+      if (!p) return;
+      if (!map[p]) map[p] = { person: p, moneyIn: 0, moneyOut: 0, giftIn: 0, giftOut: 0 };
+      const a = Number(r.amount) || 0;
+      if (r.type === "lend") map[p].moneyIn += a;
+      else if (r.type === "collect") map[p].moneyIn -= a;
+      else if (r.type === "borrow") map[p].moneyOut += a;
+      else if (r.type === "repay") map[p].moneyOut -= a;
+      else if (r.type === "gift_in") map[p].giftIn += 1;
+      else if (r.type === "gift_out") map[p].giftOut += 1;
+    });
+    return map;
+  }
+
+  function renderRenqing() {
+    const map = aggregateRenqing();
+    const people = Object.values(map);
+    let giftCount = 0, recvCount = 0, payCount = 0;
+    people.forEach((p) => {
+      if (p.giftIn > p.giftOut) giftCount++;
+      if (p.moneyIn > 0) recvCount++;
+      if (p.moneyOut > 0) payCount++;
+    });
+    els.renGiftCount.textContent = giftCount;
+    els.renRecvCount.textContent = recvCount;
+    els.renPayCount.textContent = payCount;
+
+    if (!people.length) {
+      els.renList.innerHTML = "";
+      els.renEmpty.style.display = "block";
+      return;
+    }
+    els.renEmpty.style.display = "none";
+    els.renList.innerHTML = people
+      .map((p) => {
+        const pending = p.giftIn > p.giftOut || p.moneyIn > 0 || p.moneyOut > 0;
+        let tags = "";
+        if (p.moneyIn > 0) tags += `<span class="ren-tag recv">待收款 ${fmt(p.moneyIn)}</span>`;
+        if (p.moneyOut > 0) tags += `<span class="ren-tag pay">待付款 ${fmt(p.moneyOut)}</span>`;
+        if (p.giftIn > p.giftOut) tags += `<span class="ren-tag gift">待回礼</span>`;
+        if (!tags) tags = `<span class="ren-tag bal">已平衡</span>`;
+        const initial = escapeHtml(p.person.slice(0, 1));
+        return `<div class="ren-row${pending ? " has-pending" : ""}" data-person="${escapeHtml(p.person)}">
+          <div class="ren-avatar">${initial}</div>
+          <div class="ren-info">
+            <div class="ren-name">${pending ? '<span class="ren-dot"></span>' : ""}${escapeHtml(p.person)}</div>
+            <div class="ren-sub">${tags}</div>
+          </div>
+          <div class="ren-arrow">›</div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  function openRenDetail(person) {
+    const recs = state.renqing
+      .filter((r) => (r.person || "").trim() === person)
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+    els.renModalTitle.textContent = `${person} 的往来`;
+    const agg = aggregateRenqing()[person] || { moneyIn: 0, moneyOut: 0, giftIn: 0, giftOut: 0 };
+    const giftPending = agg.giftIn > agg.giftOut;
+    if (!recs.length) {
+      els.renModalBody.innerHTML = `<p style="text-align:center;color:#a08a98;padding:14px 0;">还没有往来记录哦 🐣</p>`;
+    } else {
+      els.renModalBody.innerHTML = recs
+        .map((r) => {
+          const m = REN_META[r.type] || { icon: "🏷️", label: r.type, money: false };
+          let badge = "", clearBtn = "";
+          if (r.type === "lend" && agg.moneyIn > 0) {
+            badge = `<span class="tl-badge pending">待结清</span>`;
+            clearBtn = `<button class="tl-clear" data-clear="collect" data-person="${escapeHtml(person)}" data-amount="${Number(r.amount) || 0}">标记结清</button>`;
+          } else if (r.type === "borrow" && agg.moneyOut > 0) {
+            badge = `<span class="tl-badge pending">待结清</span>`;
+            clearBtn = `<button class="tl-clear" data-clear="repay" data-person="${escapeHtml(person)}" data-amount="${Number(r.amount) || 0}">标记结清</button>`;
+          } else if (r.type === "gift_in" && giftPending) {
+            badge = `<span class="tl-badge pending">待回礼</span>`;
+            clearBtn = `<button class="tl-clear" data-clear="gift_out" data-person="${escapeHtml(person)}" data-amount="0">已回礼</button>`;
+          } else if (r.type === "lend" || r.type === "borrow") {
+            badge = `<span class="tl-badge done">已结清</span>`;
+          } else if (r.type === "gift_in" || r.type === "gift_out") {
+            if (!giftPending) badge = `<span class="tl-badge done">已回礼</span>`;
+          }
+          const amtHtml = m.money
+            ? `<div class="tl-amt">${r.type === "borrow" || r.type === "repay" ? "-" : "+"}${fmt(Number(r.amount) || 0)}</div>`
+            : "";
+          return `<div class="tl-item">
+            <div class="tl-ico">${m.icon}</div>
+            <div class="tl-main">
+              <div class="tl-cat">${m.label}${badge}</div>
+              <div class="tl-note">${r.reason ? escapeHtml(r.reason) : "日常"} · ${escapeHtml(r.date || "")}</div>
+              ${clearBtn}
+            </div>
+            ${amtHtml}
+          </div>`;
+        })
+        .join("");
+    }
+    els.renModal.classList.add("show");
+  }
+
+  /* 月历 / 图表 / 人情 视图切换 */
+  $$(".cal-tab").forEach((b) =>
+    b.addEventListener("click", () => {
+      $$(".cal-tab").forEach((x) => x.classList.toggle("active", x === b));
+      const v = b.dataset.view;
+      els.calCard.style.display = v === "cal" ? "" : "none";
+      els.chartCard.style.display = v === "chart" ? "" : "none";
+      els.renCard.style.display = v === "ren" ? "" : "none";
+      if (v === "ren") renderRenqing();
+    })
+  );
+  els.chartCard.style.display = "none";
+  els.renCard.style.display = "none";
+
+  /* 点关系列表看某人明细 */
+  els.renList.addEventListener("click", (e) => {
+    const row = e.target.closest(".ren-row");
+    if (!row) return;
+    openRenDetail(row.dataset.person);
+  });
+
+  /* 时间线内标记结清 / 已回礼 */
+  els.renModalBody.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tl-clear");
+    if (!btn) return;
+    const person = btn.dataset.person;
+    const kind = btn.dataset.clear;
+    const amount = parseFloat(btn.dataset.amount) || 0;
+    if (kind === "collect") state.renqing.push({ id: uid(), person, type: "collect", amount, reason: "结清", date: todayStr() });
+    else if (kind === "repay") state.renqing.push({ id: uid(), person, type: "repay", amount, reason: "结清", date: todayStr() });
+    else if (kind === "gift_out") state.renqing.push({ id: uid(), person, type: "gift_out", amount: 0, reason: "回礼", date: todayStr() });
+    saveAll();
+    renderRenqing();
+    openRenDetail(person);
+  });
+
+  /* 添加往来 */
+  els.renForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const person = $("#renPerson").value.trim();
+    if (!person) return;
+    const type = $("#renType").value;
+    const amount = parseFloat($("#renAmount").value) || 0;
+    const reason = $("#renReason").value;
+    const date = $("#renDate").value || todayStr();
+    state.renqing.push({ id: uid(), person, type, amount, reason, date });
+    saveAll();
+    $("#renPerson").value = "";
+    $("#renAmount").value = "";
+    renderRenqing();
+  });
+
+  /* 人情弹窗关闭 */
+  els.renModalClose.addEventListener("click", () => els.renModal.classList.remove("show"));
+  els.renModal.addEventListener("click", (e) => {
+    if (e.target === els.renModal) els.renModal.classList.remove("show");
   });
 
   /* 收/支类型切换 */
@@ -3393,6 +3579,7 @@
   if (state.goal) $("#goalInput").value = state.goal;
   refreshCats();
   renderMonth();
+  renderRenqing();
   renderDiet();
   renderPlan(planDate());
   renderFood(planDate());
