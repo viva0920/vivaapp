@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -89,7 +89,21 @@
           </div>
         </div>
 
-        <div class="chart-card">
+        <div class="cal-toggle">
+          <button class="cal-tab active" data-view="cal">📅 月历</button>
+          <button class="cal-tab" data-view="chart">📊 图表</button>
+        </div>
+
+        <div class="cal-card" id="calCard">
+          <div class="cal-legend">
+            <span class="lg-in"><i></i>收入</span>
+            <span class="lg-ex"><i></i>支出</span>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <p class="cal-hint">点某一天看当天明细</p>
+        </div>
+
+        <div class="chart-card" id="chartCard">
           <div class="chart-toggle">
             <button class="ct-btn active" data-chart="expense">支出分布</button>
             <button class="ct-btn" data-chart="income">收入分布</button>
@@ -101,6 +115,16 @@
             <div id="pieLegend" class="legend"></div>
           </div>
           <div id="pieEmpty" class="empty-hint">这个月还没有记录哦 🐣</div>
+        </div>
+
+        <div class="modal-mask" id="dayModal">
+          <div class="modal">
+            <h3 id="dayModalTitle">明细</h3>
+            <div id="dayModalBody"></div>
+            <div class="modal-actions">
+              <button class="ghost-btn" id="dayModalClose">关闭</button>
+            </div>
+          </div>
         </div>
 
         <div class="add-card">
@@ -760,6 +784,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>
