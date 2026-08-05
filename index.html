@@ -14,13 +14,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
     <div class="backup-bar" id="backupBar">
       <button class="backup-btn" id="exportBtn">📤 备份</button>
       <button class="backup-btn" id="importBtn">📥 恢复</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" />
     </div>
 
     <!-- 左侧模块导航 -->
@@ -758,6 +759,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
