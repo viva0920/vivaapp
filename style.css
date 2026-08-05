@@ -981,22 +981,13 @@ body {
   box-shadow: 0 8px 22px rgba(180,150,130,.14);
   background-image: repeating-linear-gradient(transparent, transparent 33px, #efe6d6 33px, #efe6d6 34px);
   background-attachment: local;
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-
+  position: relative;
 }
+
 .paper-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .paper-meta label { font-size: 13px; color: #b07f96; }
 .paper-meta input {
@@ -1088,6 +1079,7 @@ body {
   display: flex !important;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
 }
 .editor-top {
   position: static;
@@ -1135,3 +1127,9 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .backup-bar .bb-btn:active { transform: scale(.96); }
+
+/* iOS 全屏(添加到桌面)模式下确保写手账中间区域可滚动 */
+@media all and (display-mode: standalone) {
+  .daily-screen.daily-editor.active { display: flex !important; flex-direction: column; overflow: hidden; height: 100%; }
+  .paper-sheet { flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; }
+}
