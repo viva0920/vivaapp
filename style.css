@@ -1105,18 +1105,23 @@ body {
 }
 .backup-btn {
   font-size: 12px;
+  font-weight: 600;
   line-height: 1;
-  padding: 7px 11px;
-  border: none;
+  padding: 7px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
   color: #fff;
-  background: rgba(45, 24, 80, 0.82);
-  box-shadow: 0 4px 12px rgba(20, 10, 40, 0.28);
+  background: linear-gradient(135deg, #ff9ec6 0%, #ff6fa5 100%);
+  box-shadow: 0 4px 14px rgba(255, 111, 165, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   backdrop-filter: blur(4px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.backup-btn:active { transform: scale(0.95); }
+.backup-btn:active {
+  transform: scale(0.94);
+  box-shadow: 0 2px 8px rgba(255, 111, 165, 0.5);
+}
 .backup-bar .bb-btn {
   font-size: 13px;
   font-weight: 700;
