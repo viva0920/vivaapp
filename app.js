@@ -145,6 +145,13 @@
     categorySelect: $("#categorySelect"),
     recordList: $("#recordList"),
     dateInput: $("#dateInput"),
+    calGrid: $("#calGrid"),
+    calCard: $("#calCard"),
+    chartCard: $("#chartCard"),
+    dayModal: $("#dayModal"),
+    dayModalTitle: $("#dayModalTitle"),
+    dayModalBody: $("#dayModalBody"),
+    dayModalClose: $("#dayModalClose"),
   };
 
   function refreshCats() {
@@ -166,6 +173,79 @@
 
     drawPie(recs);
     renderRecords(recs);
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const [y, mo] = state.currentMonth.split("-").map(Number);
+    const first = new Date(y, mo - 1, 1);
+    const startWeekday = first.getDay();
+    const daysInMonth = new Date(y, mo, 0).getDate();
+
+    const totals = {};
+    state.records.forEach((r) => {
+      if (r.date.startsWith(state.currentMonth)) {
+        const day = parseInt(r.date.slice(8, 10), 10);
+        if (!totals[day]) totals[day] = { income: 0, expense: 0 };
+        totals[day][r.type] += r.amount;
+      }
+    });
+
+    const now = new Date();
+    const isThisMonth = now.getFullYear() === y && now.getMonth() + 1 === mo;
+    const todayDate = now.getDate();
+
+    const wd = ["日", "一", "二", "三", "四", "五", "六"];
+    let html = wd.map((w) => `<div class="cal-wd">${w}</div>`).join("");
+    for (let i = 0; i < startWeekday; i++) html += `<div class="cal-cell empty"></div>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const t = totals[d];
+      const cls = "cal-cell" + (isThisMonth && d === todayDate ? " today" : "");
+      let inner = `<span class="cal-num">${d}</span>`;
+      if (t) {
+        if (t.income > 0) inner += `<span class="cal-in">收${fmt(t.income)}</span>`;
+        if (t.expense > 0) inner += `<span class="cal-ex">支${fmt(t.expense)}</span>`;
+      }
+      html += `<div class="${cls}" data-day="${d}">${inner}</div>`;
+    }
+    els.calGrid.innerHTML = html;
+  }
+
+  function openDayDetail(day) {
+    const [y, mo] = state.currentMonth.split("-").map(Number);
+    const ds = `${y}-${String(mo).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const recs = state.records
+      .filter((r) => r.date === ds)
+      .sort((a, b) => (a.id < b.id ? 1 : a.id > b.id ? -1 : 0));
+
+    els.dayModalTitle.textContent = `${mo}月${day}日 明细`;
+
+    if (!recs.length) {
+      els.dayModalBody.innerHTML = `<p style="text-align:center;color:#a08a98;padding:14px 0;">这天还没有记录哦 🐣</p>`;
+    } else {
+      const inc = recs.filter((r) => r.type === "income").reduce((s, r) => s + r.amount, 0);
+      const exp = recs.filter((r) => r.type === "expense").reduce((s, r) => s + r.amount, 0);
+      let html = `<div style="display:flex;gap:10px;margin-bottom:10px;">
+        <div style="flex:1;text-align:center;background:#eafaf5;border-radius:12px;padding:8px;color:#1D9E75;font-weight:700;">收 ${fmt(inc)}</div>
+        <div style="flex:1;text-align:center;background:#fff0f6;border-radius:12px;padding:8px;color:#D4537E;font-weight:700;">支 ${fmt(exp)}</div>
+      </div>`;
+      html += recs
+        .map((r) => {
+          const cat = state.cats[r.type].find((c) => c.name === r.category) || { icon: "🏷️", color: "#eee" };
+          const sign = r.type === "income" ? "+" : "-";
+          return `<div class="rec-item">
+            <div class="rec-ico" style="background:${cat.color}33">${cat.icon}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="rec-cat">${escapeHtml(r.category)}</div>
+              ${r.note ? `<div class="rec-note">${escapeHtml(r.note)}</div>` : ""}
+            </div>
+            <div class="rec-amt ${r.type}">${sign}${fmt(r.amount).slice(1)}</div>
+          </div>`;
+        })
+        .join("");
+      els.dayModalBody.innerHTML = html;
+    }
+    els.dayModal.classList.add("show");
   }
 
   function groupByCat(recs) {
@@ -293,6 +373,32 @@
       renderMonth();
     })
   );
+
+  /* 月历 / 图表 视图切换 */
+  $$(".cal-tab").forEach((b) =>
+    b.addEventListener("click", () => {
+      $$(".cal-tab").forEach((x) => x.classList.toggle("active", x === b));
+      const v = b.dataset.view;
+      els.calCard.style.display = v === "cal" ? "" : "none";
+      els.chartCard.style.display = v === "chart" ? "" : "none";
+    })
+  );
+  els.chartCard.style.display = "none";
+
+  /* 点某天看明细 */
+  els.calGrid.addEventListener("click", (e) => {
+    const cell = e.target.closest(".cal-cell");
+    if (!cell || cell.classList.contains("empty")) return;
+    $$(".cal-cell.sel", els.calGrid).forEach((c) => c.classList.remove("sel"));
+    cell.classList.add("sel");
+    openDayDetail(parseInt(cell.dataset.day, 10));
+  });
+
+  /* 明细弹窗关闭 */
+  els.dayModalClose.addEventListener("click", () => els.dayModal.classList.remove("show"));
+  els.dayModal.addEventListener("click", (e) => {
+    if (e.target === els.dayModal) els.dayModal.classList.remove("show");
+  });
 
   /* 收/支类型切换 */
   $$(".tt-btn").forEach((b) =>
