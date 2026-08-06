@@ -14,14 +14,34 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=16" />
+  <link rel="stylesheet" href="style.css?v=17" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
     <div class="backup-bar" id="backupBar">
       <button class="backup-btn" id="exportBtn">📤 备份</button>
       <button class="backup-btn" id="importBtn">📥 恢复</button>
+      <button class="backup-btn" id="cloudBtn">☁️ 云</button>
       <input type="file" id="importFile" accept=".json" style="display:none" />
+
+      <div class="modal-mask" id="cloudModal">
+        <div class="modal">
+          <h3>☁️ 云备份设置</h3>
+          <p class="cloud-tip">填一个只开了 <b>gist</b> 权限的 GitHub token，开启后数据改动会自动静默备份到你的私人 Gist。换手机时点「从云端恢复」即可。token 只存在本机，不会上传到别处。</p>
+          <label class="cloud-label">GitHub Token</label>
+          <input type="password" id="cloudToken" class="cloud-input" placeholder="ghp_xxx（仅保存在本机）" autocomplete="off" />
+          <label class="cloud-switch"><input type="checkbox" id="cloudEnabled" /> 开启自动备份</label>
+          <div id="cloudStatus" class="cloud-status">尚未备份</div>
+          <div class="modal-actions">
+            <button class="ghost-btn" id="cloudClose">关闭</button>
+            <button class="ghost-btn" id="cloudNow">立即备份</button>
+          </div>
+          <div class="modal-actions">
+            <button class="ghost-btn" id="cloudRestore">从云端恢复</button>
+            <button class="primary-btn" id="cloudSave">保存设置</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 左侧模块导航 -->
@@ -856,6 +876,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=17"></script>
 </body>
 </html>
