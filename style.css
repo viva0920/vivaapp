@@ -1133,7 +1133,8 @@ body {
   border: 2px solid #f0e3d4; border-radius: 12px; padding: 8px 10px; font-family: inherit;
   font-size: 14px; color: #7a5a6e; background: #fff; outline: none;
 }
-.paper-moods { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+.paper-mood-row { display: flex; align-items: center; gap: 10px; margin: 14px 0 6px; }
+.paper-mood-row .paper-moods { flex: 1 1 auto; margin: 0; }
 .mood-chip {
   border: 2px solid #efe3d4; background: #fff; border-radius: 16px; padding: 6px 12px;
   font-size: 13px; cursor: pointer; color: #8a6f80; transition: all .15s;
@@ -1234,10 +1235,10 @@ body {
 .editor-top .editor-title { flex: 1 1 auto; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .editor-save-btn {
   flex: 0 0 auto;
-  border: none; border-radius: 14px; padding: 9px 16px;
-  font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  border: none; border-radius: 12px; padding: 7px 14px;
+  font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
   background: linear-gradient(135deg, #ffb3d1, #ff8fb4); color: #fff;
-  box-shadow: 0 4px 10px rgba(255,140,180,.35);
+  box-shadow: 0 3px 8px rgba(255,140,180,.3);
   -webkit-tap-highlight-color: transparent;
   transition: transform .12s ease, box-shadow .12s ease;
 }
