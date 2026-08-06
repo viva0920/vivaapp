@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=17" />
+  <link rel="stylesheet" href="style.css?v=18" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -472,7 +472,7 @@
 
       <!-- ===== 日常手账本模块 ===== -->
       <section id="module-daily" class="module">
-        <!-- ① 封面页 -->
+        <!-- ① 封面页（方案B：封面即完整可交互月历） -->
         <div class="daily-screen daily-cover active" id="dailyCover">
           <div class="cover-stars" id="coverStars" aria-hidden="true"></div>
           <div class="top">
@@ -485,47 +485,15 @@
             <div class="cover-cat"><img class="cover-cat-img" src="cover-cat.png" alt="猫猫" /></div>
             <div class="cover-title">我的手账本</div>
             <div class="cover-sub">治愈日常</div>
+            <div class="cover-cal-pick">
+              <label class="cover-month-label">📅 选择月份</label>
+              <input type="month" id="coverMonth" class="cover-picker journal-month-input" />
+            </div>
             <div class="cover-cal" id="coverCalendar"></div>
           </div>
-          <div class="cover-controls">
-            <label class="cover-month-label">📅 选择月份</label>
-            <input type="month" id="coverMonth" class="cover-picker journal-month-input" />
-          </div>
           <div class="cover-btns">
-            <button class="cover-btn primary" id="coverOpenBtn">📖 打开当月手账本</button>
+            <button class="cover-btn primary" id="coverFlipBtn">📖 翻页阅览</button>
             <button class="cover-btn ghost" id="coverNewBtn">✏️ 新建手账记录</button>
-          </div>
-        </div>
-
-        <!-- ② 月度手账本（单页整月 + 可翻页 + 详情弹层） -->
-        <div class="daily-screen daily-monthbook" id="dailyMonthbook">
-          <div class="monthbook-stars" id="monthbookStars" aria-hidden="true"></div>
-          <div class="top">
-            <button id="monthbookBack">‹ 封面</button>
-            <div class="title">手账本</div>
-            <button id="monthbookOverview">☰</button>
-          </div>
-          <div class="monthbook-monthnav">
-            <button class="monthbook-arrow" id="monthbookPrev">‹</button>
-            <div class="monthbook-curwrap">
-              <div class="monthbook-cur" id="monthbookCur">2026年8月</div>
-              <div class="monthbook-cursub" id="monthbookCursub">第 8 月 · 点日期看详情，点箭头翻月</div>
-            </div>
-            <button class="monthbook-arrow" id="monthbookNext">›</button>
-          </div>
-          <div class="monthbook-desk" id="monthbookDesk">
-            <div class="monthbook-book">
-              <div class="monthbook-weekhead"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-              <div class="monthbook-grid" id="monthbookGrid"></div>
-            </div>
-          </div>
-          <div class="monthbook-empty" id="monthbookEmpty" style="display:none">
-            <p>这个月还没有记录哦～</p>
-            <button class="cover-btn primary" id="monthbookEmptyNew">✏️ 写第一篇</button>
-          </div>
-          <div class="monthbook-bottom" id="monthbookBottom">
-            <button class="monthbook-btn ghost" id="monthbookFlip">📖 翻页阅览</button>
-            <button class="monthbook-btn primary" id="monthbookAdd">➕ 新记录</button>
           </div>
           <div class="monthbook-scrim" id="monthbookScrim"></div>
           <div class="monthbook-sheet" id="monthbookSheet">
@@ -876,6 +844,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=17"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>
