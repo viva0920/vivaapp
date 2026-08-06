@@ -3343,7 +3343,9 @@
   // renderMonthBook 已合并进 buildCoverCalendar（方案B：封面即完整可交互月历）
 
 
+  let sheetDateStr = null;
   function openDaySheet(dateStr, list) {
+    sheetDateStr = dateStr;
     const body = $("#sheetBody");
     const dateEl = $("#sheetDate");
     if (!body) return;
@@ -3354,7 +3356,12 @@
       const x = DAILY_MOODS.find((d) => d.key === e.mood);
       const ml = x ? x.label : "";
       html += '<div class="sheet-entry">';
+      html += '<div class="sheet-entry-head">';
       if (ml) html += '<div class="sheet-mood">' + ml + "</div>";
+      html += '<div class="sheet-entry-actions">';
+      html += '<button type="button" class="sheet-edit-btn" data-id="' + e.id + '">✏️ 编辑</button>';
+      html += '<button type="button" class="sheet-del-btn" data-id="' + e.id + '">🗑️ 删除</button>';
+      html += "</div></div>";
       if (e.text) html += '<div class="sheet-text">' + escapeHtml(e.text) + "</div>";
       if (e.images && e.images.length) {
         html += '<div class="sheet-photos">' + e.images.map((s) => '<img src="' + s + '" alt="" />').join("") + "</div>";
@@ -3363,9 +3370,32 @@
       html += "</div>";
     });
     body.innerHTML = html;
+    $$(".sheet-edit-btn", body).forEach((b) => b.addEventListener("click", () => {
+      const id = b.dataset.id;
+      closeDaySheet();
+      openEditor({ id });
+    }));
+    $$(".sheet-del-btn", body).forEach((b) => b.addEventListener("click", () => {
+      deleteEntryById(b.dataset.id);
+    }));
     const sheet = $("#monthbookSheet"), scrim = $("#monthbookScrim");
     if (sheet) sheet.classList.add("open");
     if (scrim) scrim.classList.add("show");
+  }
+  function deleteEntryById(id) {
+    const e = getDailyEntry(id);
+    if (!e) return;
+    if (!confirm("删除这条手账记录？")) return;
+    const d = e.date;
+    state.daily.entries = state.daily.entries.filter((x) => x.id !== id);
+    saveAll();
+    buildCoverCalendar(monthbookYm);
+    const remain = state.daily.entries.filter((x) => x.date === d);
+    if (remain.length) {
+      openDaySheet(d, remain);
+    } else {
+      closeDaySheet();
+    }
   }
   function closeDaySheet() {
     const sheet = $("#monthbookSheet"), scrim = $("#monthbookScrim");
