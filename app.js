@@ -3173,6 +3173,20 @@
     return t.slice(0, 7) === ym ? t : ym + "-01";
   }
 
+  function adjustEditorViewport() {
+    const ed = $("#dailyEditor");
+    const vv = window.visualViewport;
+    if (!ed || !vv) return;
+    const layoutH = window.innerHeight;
+    if (vv.height < layoutH - 80) {
+      ed.style.height = vv.height + "px";
+      ed.style.top = vv.offsetTop + "px";
+    } else {
+      ed.style.height = "";
+      ed.style.top = "";
+    }
+  }
+
   function showDailyScreen(name) {
     closeDaySheet();
     dailyScreen = name;
@@ -3185,6 +3199,14 @@
     if (name === "cover") renderCover();
     else if (name === "reader") renderReader();
     else if (name === "overview") renderOverview();
+    if (name === "editor") {
+      adjustEditorViewport();
+      if (window.visualViewport) window.visualViewport.addEventListener("resize", adjustEditorViewport);
+    } else if (window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", adjustEditorViewport);
+      const ed = $("#dailyEditor");
+      if (ed) { ed.style.height = ""; ed.style.top = ""; }
+    }
   }
 
   function renderCover() {
