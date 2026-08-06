@@ -411,6 +411,18 @@ body {
 .content::-webkit-scrollbar, .modal::-webkit-scrollbar { width: 6px; }
 .content::-webkit-scrollbar-thumb, .modal::-webkit-scrollbar-thumb { background: #ffd0e2; border-radius: 4px; }
 
+/* ===== 云备份 ===== */
+.cloud-tip { font-size: 12px; color: var(--ink-soft); line-height: 1.6; margin: 0 0 12px; }
+.cloud-tip b { color: var(--pink-deep); }
+.cloud-label { font-size: 13px; color: var(--ink); display: block; margin-bottom: 6px; }
+.cloud-input {
+  width: 100%; box-sizing: border-box; border: 2px solid #ffe1ec; border-radius: 14px;
+  padding: 10px 12px; font-size: 14px; font-family: var(--font); margin-bottom: 12px;
+}
+.cloud-input:focus { outline: none; border-color: var(--pink); }
+.cloud-switch { font-size: 14px; color: var(--ink); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cloud-status { font-size: 12px; color: #888; text-align: center; margin: 6px 0; min-height: 16px; }
+
 /* ===== 减肥增强 ===== */
 .ghost-btn.slim { width: 100%; padding: 9px; margin-bottom: 14px; font-size: 13px; }
 
