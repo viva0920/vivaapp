@@ -1055,7 +1055,15 @@ body {
 .sheet-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
 .sheet-entry { padding: 10px 0; border-bottom: 1px solid #f0eaf8; }
 .sheet-entry:last-child { border-bottom: none; }
-.sheet-mood { font-size: 13px; background: #f3ecff; color: #7a4fd0; padding: 4px 12px; border-radius: 12px; display: inline-block; margin-bottom: 6px; }
+.sheet-entry-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.sheet-entry-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.sheet-edit-btn, .sheet-del-btn {
+  border: none; border-radius: 10px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+  font-family: inherit; -webkit-tap-highlight-color: transparent; line-height: 1.4;
+}
+.sheet-edit-btn { background: #f3ecff; color: #7a4fd0; }
+.sheet-del-btn { background: #ffe9ef; color: #d6457a; }
+.sheet-mood { font-size: 13px; background: #f3ecff; color: #7a4fd0; padding: 4px 12px; border-radius: 12px; display: inline-block; margin-bottom: 0; }
 .sheet-text { font-size: 15px; line-height: 1.7; color: #3a2c52; white-space: pre-wrap; word-break: break-word; }
 .sheet-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
 .sheet-photos img { width: 100%; aspect-ratio: 1; border-radius: 12px; object-fit: cover; border: 1px solid #efe3f4; }
