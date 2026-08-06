@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=21" />
+  <link rel="stylesheet" href="style.css?v=22" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -536,7 +536,6 @@
           <div class="editor-top">
             <button class="editor-nav-btn" id="editorBack">‹ 返回</button>
             <div class="editor-title" id="editorTitle">✏️ 写手账</div>
-            <button class="editor-save-btn" id="editorSave">💾 保存</button>
           </div>
           <div class="paper-sheet">
             <div class="paper-meta">
@@ -545,7 +544,10 @@
               <label>⏰ 时间</label>
               <input type="time" id="editorTime" />
             </div>
-            <div class="paper-moods" id="editorMoods"></div>
+            <div class="paper-mood-row">
+              <div class="paper-moods" id="editorMoods"></div>
+              <button class="editor-save-btn" id="editorSave">💾 保存</button>
+            </div>
             <textarea id="editorText" class="paper-lines" placeholder="今天发生了什么？&#10;写下心情、琐事、小确幸……"></textarea>
             <div class="paper-stickers">
               <span class="sticker-label">🐾 贴纸</span>
