@@ -1230,7 +1230,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
 }
 .editor-top .editor-title { flex: 1 1 auto; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .editor-save-btn {
