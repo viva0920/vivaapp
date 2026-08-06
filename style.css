@@ -828,7 +828,7 @@ body {
   border-radius: 24px; padding: 12px 14px 14px; text-align: center;
   box-shadow: 0 16px 38px rgba(40,20,80,.45), inset 0 0 0 1px rgba(255,255,255,.55);
   border: 1px solid rgba(160,120,230,.35);
-  flex-shrink: 0;
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
 .cover-ribbon {
   display: inline-block; background: linear-gradient(135deg,#9a6bff,#c86bff); color: #fff;
@@ -902,6 +902,13 @@ body {
 .cover-btn.primary { background: linear-gradient(135deg,#9a6bff,#c86bff); box-shadow: 0 8px 20px rgba(150,90,255,.55); }
 .cover-btn.ghost { background: #3a2a5a; color: #d9cdf2; }
 .cover-btn:active { transform: scale(.97); }
+
+/* 封面月历升级为完整可交互网格（方案B） */
+.cover-cal-pick { margin: 10px 0 2px; text-align: left; }
+.cover-cal-pick .cover-month-label { color: #7a5a9e; }
+.cover-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px; }
+.cover-month-grid .monthbook-cell { min-height: 48px; }
+.cover-cal-hint { color: #9b86c9; font-size: 11px; margin: 8px 0 2px; }
 
 @media (max-height: 720px) {
   .cover-cat { width: 58px; height: 58px; margin: 6px auto 3px; }
