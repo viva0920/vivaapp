@@ -1177,6 +1177,8 @@ body {
   border: 2px dashed #f0c2d8; border-radius: 14px; padding: 12px; font-size: 13px; color: #c98aa6; cursor: pointer;
 }
 .paper-file-btn:active { background: #fff0f6; }
+#editorMic.recording { background: #e24b4b; color: #fff; border-color: #e24b4b; border-style: solid; animation: micPulse 1s ease-in-out infinite; }
+@keyframes micPulse { 0%, 100% { opacity: 1; } 50% { opacity: .6; } }
 .editor-bottom {
   display: flex;
   justify-content: flex-end;
