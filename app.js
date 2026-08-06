@@ -22,6 +22,44 @@
     set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
   };
 
+  /* ---------- 云备份：常量与轻量辅助（须早于 saveAll 首次调用，避免 TDZ） ---------- */
+  const CLOUD_KEY = "wb_cloud";
+  const CLOUD_FILE = "vivaapp-backup.json";
+  let _cloudTimer = null;
+
+  function loadCloudCfg() {
+    return store.get(CLOUD_KEY, { token: "", gistId: "", enabled: false, lastBackup: null, lastError: "" });
+  }
+  function saveCloudCfg(cfg) { store.set(CLOUD_KEY, cfg); }
+
+  function cloudStatus(text, isErr) {
+    const el = $("#cloudStatus");
+    if (el) { el.textContent = text; el.style.color = isErr ? "#d4537e" : "#888"; }
+  }
+
+  // 收集所有 wb_ 数据键（排除云配置本身，避免把 token 备份进 gist）
+  function gatherCloudData() {
+    const out = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf("wb_") === 0 && k !== CLOUD_KEY) {
+        try { out[k] = JSON.parse(localStorage.getItem(k)); }
+        catch (e) { out[k] = localStorage.getItem(k); }
+      }
+    }
+    out._app = "小熊工作台";
+    out._ver = 1;
+    out._savedAt = new Date().toISOString();
+    return out;
+  }
+
+  function scheduleCloudBackup() {
+    const cfg = loadCloudCfg();
+    if (!cfg.enabled || !cfg.token) return;
+    if (_cloudTimer) clearTimeout(_cloudTimer);
+    _cloudTimer = setTimeout(doCloudBackup, 1500);
+  }
+
   /* ---------- 默认类别 ---------- */
   const DEFAULT_CATS = {
     expense: [
@@ -103,6 +141,7 @@
     store.set("wb_exlib", state.exLibrary);
     store.set("wb_daily", state.daily);
     store.set("wb_renqing", state.renqing);
+    scheduleCloudBackup();
   };
 
   /* =========================================================
@@ -3708,4 +3747,113 @@
     if (f) importBackup(f);
     e.target.value = "";
   });
+
+  /* =========================================================
+     云备份（GitHub Gist，自动静默备份）
+     token 由用户在设置里输入并只存在本机，不写进代码
+     常量与轻量辅助见文件前部 store 之后
+     ========================================================= */
+  async function doCloudBackup() {
+    const cfg = loadCloudCfg();
+    if (!cfg.enabled || !cfg.token) return;
+    const data = gatherCloudData();
+    const payload = {
+      description: "小熊工作台自动备份",
+      public: false,
+      files: { [CLOUD_FILE]: { content: JSON.stringify(data) } },
+    };
+    try {
+      let id = cfg.gistId;
+      if (!id) {
+        const res = await fetch("https://api.github.com/gists", {
+          method: "POST",
+          headers: { "Authorization": "token " + cfg.token, "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const j = await res.json();
+        id = j.id; cfg.gistId = id;
+      } else {
+        const res = await fetch("https://api.github.com/gists/" + id, {
+          method: "PATCH",
+          headers: { "Authorization": "token " + cfg.token, "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+      }
+      cfg.lastBackup = new Date().toISOString();
+      cfg.lastError = "";
+      saveCloudCfg(cfg);
+      cloudStatus("已自动备份 " + new Date().toLocaleString("zh-CN"), false);
+    } catch (e) {
+      cfg.lastError = (e && e.message) ? e.message : String(e);
+      saveCloudCfg(cfg);
+      cloudStatus("备份失败：" + cfg.lastError, true);
+    }
+  }
+
+  async function restoreFromCloud() {
+    const cfg = loadCloudCfg();
+    if (!cfg.token || !cfg.gistId) { alert("请先在「云备份设置」里保存 token 并完成一次备份"); return; }
+    if (!confirm("从云端恢复会覆盖当前所有数据，确定继续吗？")) return;
+    try {
+      const res = await fetch("https://api.github.com/gists/" + cfg.gistId, {
+        headers: { "Authorization": "token " + cfg.token },
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const j = await res.json();
+      const content = j.files && j.files[CLOUD_FILE] && j.files[CLOUD_FILE].content;
+      if (!content) throw new Error("云端没有备份文件");
+      const data = JSON.parse(content);
+      Object.keys(data).forEach((k) => {
+        if (k.indexOf("wb_") === 0 && k !== CLOUD_KEY) {
+          try { localStorage.setItem(k, JSON.stringify(data[k])); } catch (e) {}
+        }
+      });
+      state.records = store.get("wb_records", []);
+      state.cats = mergeCats(store.get("wb_cats", null));
+      state.weights = store.get("wb_weights", []);
+      state.goal = store.get("wb_goal", null);
+      state.profile = store.get("wb_profile", null);
+      state.recipes = store.get("wb_recipes", []);
+      state.checkins = store.get("wb_checkins", {});
+      state.bakeSeeds = store.get("wb_bake_seeds", {});
+      state.favs = store.get("wb_favs", {});
+      state.favCols = store.get("wb_fav_cols", ["想做", "做过", "常做"]);
+      state.bakeNotes = store.get("wb_bake_notes", {});
+      state.hot = store.get("wb_hot", null);
+      state.shopping = store.get("wb_shopping", []);
+      state.bp = store.get("wb_bp", null);
+      state.exLibrary = store.get("wb_exlib", []);
+      state.daily = store.get("wb_daily", null);
+      state.renqing = store.get("wb_renqing", []);
+      renderAll();
+      alert("已从云端恢复 🎉");
+      cloudStatus("已从云端恢复 " + new Date().toLocaleString("zh-CN"), false);
+    } catch (e) {
+      alert("恢复失败：" + ((e && e.message) ? e.message : e));
+    }
+  }
+
+  /* 云备份 UI 绑定 */
+  const cloudModal = $("#cloudModal");
+  $("#cloudBtn").addEventListener("click", () => {
+    const cfg = loadCloudCfg();
+    $("#cloudToken").value = cfg.token || "";
+    $("#cloudEnabled").checked = !!cfg.enabled;
+    cloudStatus(cfg.lastBackup ? ("上次备份：" + new Date(cfg.lastBackup).toLocaleString("zh-CN")) : "尚未备份", false);
+    cloudModal.classList.add("show");
+  });
+  $("#cloudClose").addEventListener("click", () => cloudModal.classList.remove("show"));
+  cloudModal.addEventListener("click", (e) => { if (e.target === cloudModal) cloudModal.classList.remove("show"); });
+  $("#cloudSave").addEventListener("click", () => {
+    const cfg = loadCloudCfg();
+    cfg.token = $("#cloudToken").value.trim();
+    cfg.enabled = $("#cloudEnabled").checked;
+    saveCloudCfg(cfg);
+    cloudStatus("设置已保存", false);
+    if (cfg.enabled && cfg.token) doCloudBackup();
+  });
+  $("#cloudNow").addEventListener("click", () => doCloudBackup());
+  $("#cloudRestore").addEventListener("click", () => { cloudModal.classList.remove("show"); restoreFromCloud(); });
 })();
