@@ -3345,9 +3345,11 @@
 
   function openDaySheet(dateStr, list) {
     const body = $("#sheetBody");
+    const dateEl = $("#sheetDate");
     if (!body) return;
     const p = dateStr.split("-");
-    let html = '<div class="sheet-date">' + parseInt(p[1], 10) + "月" + parseInt(p[2], 10) + "日</div>";
+    if (dateEl) dateEl.textContent = parseInt(p[1], 10) + "月" + parseInt(p[2], 10) + "日";
+    let html = "";
     list.forEach((e) => {
       const x = DAILY_MOODS.find((d) => d.key === e.mood);
       const ml = x ? x.label : "";
