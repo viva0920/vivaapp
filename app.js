@@ -3017,7 +3017,7 @@
         + '<div class="bp-stat"><span>平均心率</span><b>' + (st.hrAvg != null ? st.hrAvg : "—") + '</b></div>'
       : '<div class="bp-stat"><span>暂无数据</span><b>—</b></div>';
 
-    $("#bpChart").innerHTML = recs.length >= 2 ? drawBpChart(recs) : "";
+    $("#bpChart").innerHTML = recs.length >= 2 ? drawBpChart(recs.slice().sort((a, b) => (a.dt < b.dt ? -1 : a.dt > b.dt ? 1 : 0))) : "";
     const bpMonthEl = $("#bpMonthChart");
     if (bpMonthEl) bpMonthEl.innerHTML = drawBpMonthChart(state.bp.records.slice());
 
