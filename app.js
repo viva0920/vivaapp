@@ -3616,6 +3616,66 @@
     showDailyScreen("cover");
   }
 
+  // ---- 语音输入（Web Speech API，语音上云识别）----
+  const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let voiceRec = null, voiceActive = false, voiceBaseline = "", voiceAccum = "", voiceTimer = null;
+  function setMicState(active) {
+    const btn = $("#editorMic");
+    if (!btn) return;
+    btn.classList.toggle("recording", !!active);
+    btn.textContent = active ? "■ 停止" : "🎤 语音";
+  }
+  function stopVoiceInput() {
+    voiceActive = false;
+    if (voiceTimer) { clearTimeout(voiceTimer); voiceTimer = null; }
+    if (voiceRec) { try { voiceRec.stop(); } catch (e) {} voiceRec = null; }
+    setMicState(false);
+  }
+  function startVoiceInput() {
+    if (!SRClass) { alert("当前浏览器不支持语音输入，请手动输入～"); return; }
+    const ta = $("#editorText");
+    voiceBaseline = ta ? ta.value : "";
+    voiceAccum = "";
+    voiceActive = true;
+    try {
+      const rec = new SRClass();
+      rec.lang = "zh-CN";
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (ev) => {
+        let interim = "";
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const r = ev.results[i];
+          if (r.isFinal) voiceAccum += r[0].transcript;
+          else interim += r[0].transcript;
+        }
+        if (ta) {
+          ta.value = voiceBaseline + voiceAccum + interim;
+          try { ta.selectionStart = ta.selectionEnd = ta.value.length; } catch (e) {}
+        }
+      };
+      rec.onerror = (e) => {
+        if (e && (e.error === "no-speech" || e.error === "aborted")) return;
+        voiceActive = false; setMicState(false);
+      };
+      rec.onend = () => {
+        if (voiceActive) setTimeout(() => { if (voiceActive) startVoiceInput(); }, 200);
+      };
+      voiceRec = rec;
+      rec.start();
+      setMicState(true);
+      if (voiceTimer) clearTimeout(voiceTimer);
+      voiceTimer = setTimeout(() => stopVoiceInput(), 60000);
+    } catch (e) {
+      voiceActive = false; setMicState(false);
+      alert("无法启动语音识别，请检查浏览器权限或网络～");
+    }
+  }
+  function toggleVoiceInput() {
+    if (voiceActive) stopVoiceInput();
+    else startVoiceInput();
+  }
+
   // ---- 封面 / 阅览 / 概览 / 编辑 事件绑定 ----
   $("#coverBack").addEventListener("click", () => {
     const items = $$(".nav-item");
@@ -3643,11 +3703,16 @@
   $("#bookNext").addEventListener("click", () => flipReader(1));
   $("#monthbookScrim").addEventListener("click", closeDaySheet);
   $("#coverOverview").addEventListener("click", () => showDailyScreen("overview"));
-  $("#editorBack").addEventListener("click", () => showDailyScreen("cover"));
+  $("#editorBack").addEventListener("click", () => { stopVoiceInput(); showDailyScreen("cover"); });
   $("#editorSave").addEventListener("click", saveEntry);
   $("#editorDelete").addEventListener("click", deleteEntry);
   $("#editorCamera").addEventListener("change", () => handleEditorFile($("#editorCamera")));
   $("#editorGallery").addEventListener("change", () => handleEditorFile($("#editorGallery")));
+  const micBtn = $("#editorMic");
+  if (micBtn) {
+    if (SRClass) micBtn.addEventListener("click", toggleVoiceInput);
+    else micBtn.style.display = "none";
+  }
   $$(".sticker-opt").forEach((b) => b.addEventListener("click", () => { editorSticker = b.dataset.sticker; renderStickerPreview(); }));
   $("#ovBack").addEventListener("click", () => showDailyScreen("cover"));
   $("#dailyAddBtn").addEventListener("click", () => openEditor({ date: defaultNewDate(dailyScreen === "cover" ? monthbookYm : monthStr()) }));
