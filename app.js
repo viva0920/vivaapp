@@ -3151,6 +3151,7 @@
 
   let dailyScreen = "cover";
   let monthbookYm = monthStr();
+  let monthPickerYm = "";
   let readerYm = monthStr();
   let readerIdx = 0;
   let editorId = null;
@@ -3187,10 +3188,7 @@
   }
 
   function renderCover() {
-    const ym = monthStr();
-    const cm = $("#coverMonth");
-    if (cm && !cm.value) cm.value = ym;
-    monthbookYm = (cm && cm.value) || ym;
+    if (!monthbookYm) monthbookYm = monthStr();
     paintStars("coverStars", "cv-star");
     buildCoverCalendar(monthbookYm);
   }
@@ -3233,15 +3231,19 @@
 
     const weekHead = wd.map((w) => "<span>" + w + "</span>").join("");
     cal.innerHTML =
-      '<div class="cover-cal-head"><span>' + y + '年' + m + '月</span>' +
-      '<span class="cover-cal-mv"><button id="coverCalPrev">‹</button><button id="coverCalNext">›</button></span></div>' +
+      '<div class="cover-cal-head">' +
+        '<button id="coverCalPrev" class="cover-cal-arrow" aria-label="上个月">‹</button>' +
+        '<button id="coverCalLabel" class="cover-cal-label">' + y + '年' + m + '月 ▾</button>' +
+        '<button id="coverCalNext" class="cover-cal-arrow" aria-label="下个月">›</button>' +
+      '</div>' +
       '<div class="monthbook-weekhead">' + weekHead + '</div>' +
       '<div class="cover-month-grid">' + cells + '</div>' +
       '<p class="cover-cal-hint">点日期看当天 · 点空白日写新篇</p>';
 
-    const prev = $("#coverCalPrev"), next = $("#coverCalNext");
-    if (prev) prev.addEventListener("click", (e) => { e.stopPropagation(); monthbookYm = shiftMonth(ym, -1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
-    if (next) next.addEventListener("click", (e) => { e.stopPropagation(); monthbookYm = shiftMonth(ym, 1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
+    const prev = $("#coverCalPrev"), next = $("#coverCalNext"), label = $("#coverCalLabel");
+    if (prev) prev.addEventListener("click", (e) => { e.stopPropagation(); monthbookYm = shiftMonth(ym, -1); buildCoverCalendar(monthbookYm); });
+    if (next) next.addEventListener("click", (e) => { e.stopPropagation(); monthbookYm = shiftMonth(ym, 1); buildCoverCalendar(monthbookYm); });
+    if (label) label.addEventListener("click", (e) => { e.stopPropagation(); openMonthPicker(); });
 
     $$(".monthbook-cell", cal).forEach((cell) => {
       cell.addEventListener("click", () => {
@@ -3252,6 +3254,45 @@
         else { openEditor({ date: date }); showDailyScreen("editor"); }
       });
     });
+  }
+
+  function openMonthPicker() {
+    monthPickerYm = monthbookYm.slice(0, 4) + "-01";
+    renderMonthPicker();
+    const scrim = $("#monthPickerScrim"), sheet = $("#monthPickerSheet");
+    if (scrim) scrim.classList.add("show");
+    if (sheet) sheet.classList.add("show");
+  }
+  function closeMonthPicker() {
+    const scrim = $("#monthPickerScrim"), sheet = $("#monthPickerSheet");
+    if (scrim) scrim.classList.remove("show");
+    if (sheet) sheet.classList.remove("show");
+  }
+  function renderMonthPicker() {
+    const yr = parseInt(monthPickerYm.slice(0, 4), 10);
+    const curYm = monthbookYm;
+    const yl = $("#mpYearLabel"), grid = $("#mpGrid");
+    if (yl) yl.textContent = yr + " 年";
+    if (!grid) return;
+    let html = "";
+    for (let mo = 1; mo <= 12; mo++) {
+      const ym = yr + "-" + String(mo).padStart(2, "0");
+      const cur = ym === curYm ? " cur" : "";
+      html += '<button class="mp-cell' + cur + '" data-ym="' + ym + '">' + mo + ' 月</button>';
+    }
+    grid.innerHTML = html;
+    $$(".mp-cell", grid).forEach((b) => {
+      b.addEventListener("click", () => {
+        monthbookYm = b.dataset.ym;
+        closeMonthPicker();
+        buildCoverCalendar(monthbookYm);
+      });
+    });
+  }
+  function shiftYear(ym, delta) {
+    let [y, m] = ym.split("-").map(Number);
+    y += delta;
+    return y + "-" + String(m).padStart(2, "0");
   }
 
   function paintStars(id, cls) {
@@ -3534,8 +3575,10 @@
     }
   });
   $("#coverFlipBtn").addEventListener("click", () => { readerYm = monthbookYm; readerIdx = 0; showDailyScreen("reader"); });
-  $("#coverNewBtn").addEventListener("click", () => { const cm = $("#coverMonth"); openEditor({ date: defaultNewDate((cm && cm.value) || monthStr()) }); });
-  $("#coverMonth").addEventListener("change", () => { const cm = $("#coverMonth"); if (cm) { monthbookYm = cm.value || monthStr(); buildCoverCalendar(monthbookYm); } });
+  $("#coverNewBtn").addEventListener("click", () => { openEditor({ date: defaultNewDate(monthbookYm) }); });
+  $("#monthPickerScrim").addEventListener("click", closeMonthPicker);
+  $("#mpYearPrev").addEventListener("click", () => { monthPickerYm = shiftYear(monthPickerYm, -1); renderMonthPicker(); });
+  $("#mpYearNext").addEventListener("click", () => { monthPickerYm = shiftYear(monthPickerYm, 1); renderMonthPicker(); });
   $("#readerBack").addEventListener("click", () => showDailyScreen("cover"));
   $("#readerOverview").addEventListener("click", () => showDailyScreen("overview"));
   $("#readerMonth").addEventListener("change", () => { const rm = $("#readerMonth"); readerYm = (rm && rm.value) || monthStr(); monthbookYm = readerYm; readerIdx = 0; renderReader(); });
