@@ -855,15 +855,24 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55);
 }
 .cover-cal-head {
-  display: flex; align-items: center; justify-content: space-between;
-  color: #5a3ba0; font-size: 11px; font-weight: 800; margin-bottom: 1px; padding: 0 2px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 6px;
 }
-.cover-cal-mv { display: flex; gap: 3px; }
-.cover-cal-mv button {
-  border: none; width: 16px; height: 16px; border-radius: 50%;
-  background: #7a4fd0; color: #fff; font-size: 8px; cursor: pointer;
+.cover-cal-arrow {
+  width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;
+  background: #7a4fd0; color: #fff; font-size: 14px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; line-height: 1;
+  box-shadow: 0 2px 8px rgba(122,79,208,.4);
 }
+.cover-cal-arrow:active { transform: scale(.92); }
+.cover-cal-label {
+  border: none; cursor: pointer; background: #fff; color: #5a3ba0;
+  font-family: inherit; font-size: 14px; font-weight: 800; letter-spacing: .5px;
+  padding: 7px 18px; border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(122,79,208,.25), inset 0 0 0 1px rgba(122,79,208,.22);
+  flex: 0 1 auto; max-width: 190px;
+}
+.cover-cal-label:active { transform: scale(.97); }
 .cover-cal-week {
   display: grid; grid-template-columns: repeat(7, 1fr);
 }
@@ -879,16 +888,6 @@ body {
 .cover-cal-day.today { background: #7a4fd0; color: #fff; }
 .cover-cal-day .dot { position: absolute; bottom: 2px; width: 2px; height: 2px; border-radius: 50%; background: #c86bff; }
 
-/* 封面月份选择 + 底部按钮 */
-.cover-controls { position: relative; z-index: 1; margin: 8px 14px 0; flex-shrink: 0; }
-.cover-month-label { color: #d9cdf2; font-size: 11px; display: block; margin-bottom: 3px; }
-.cover-picker {
-  display: flex; align-items: center; gap: 8px; background: rgba(30, 20, 50, .55); border: none;
-  border-radius: 12px; padding: 8px 12px; color: #fff; font-size: 13px; width: 100%;
-  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-  color-scheme: dark;
-}
-
 /* 封面底部按钮 */
 .cover-btns {
   position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px;
@@ -903,12 +902,43 @@ body {
 .cover-btn.ghost { background: #3a2a5a; color: #d9cdf2; }
 .cover-btn:active { transform: scale(.97); }
 
-/* 封面月历升级为完整可交互网格（方案B） */
-.cover-cal-pick { margin: 10px 0 2px; text-align: left; }
-.cover-cal-pick .cover-month-label { color: #7a5a9e; }
-.cover-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px; }
-.cover-month-grid .monthbook-cell { min-height: 48px; }
+/* 封面月历升级为完整可交互网格（方案B）+ 紧凑化 */
+.cover-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 8px; }
+.cover-month-grid .monthbook-cell { min-height: 34px; }
 .cover-cal-hint { color: #9b86c9; font-size: 11px; margin: 8px 0 2px; }
+
+/* 月份快速选择器（底部弹出 sheet） */
+.month-picker-scrim {
+  position: absolute; inset: 0; background: rgba(20,10,40,.5); z-index: 40;
+  opacity: 0; visibility: hidden; transition: opacity .25s ease;
+}
+.month-picker-scrim.show { opacity: 1; visibility: visible; }
+.month-picker-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 41;
+  background: linear-gradient(180deg,#ffffff,#faf6ff);
+  border-radius: 22px 22px 0 0; padding: 8px 16px calc(18px + env(safe-area-inset-bottom));
+  transform: translateY(100%); transition: transform .32s cubic-bezier(.16,1,.3,1);
+  box-shadow: 0 -10px 30px rgba(40,20,80,.4);
+}
+.month-picker-sheet.show { transform: translateY(0); }
+.month-picker-sheet .sheet-grab { width: 38px; height: 4px; border-radius: 999px; background: #d9cdf2; margin: 4px auto 8px; }
+.mp-yearnav { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 4px 0 14px; }
+.mp-year-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+  background: #efe7ff; color: #7a4fd0; font-size: 18px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(122,79,208,.18);
+}
+.mp-year-btn:active { transform: scale(.94); }
+.mp-year-label { font-size: 17px; font-weight: 800; color: #5a3ba0; min-width: 78px; text-align: center; }
+.mp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mp-cell {
+  border: none; cursor: pointer; border-radius: 14px; padding: 14px 0; font-family: inherit;
+  font-size: 15px; font-weight: 700; color: #6b5a8c; background: #f3ecff;
+  box-shadow: inset 0 0 0 1px rgba(122,79,208,.15);
+}
+.mp-cell.cur { background: linear-gradient(135deg,#9a6bff,#c86bff); color: #fff; box-shadow: 0 6px 16px rgba(150,90,255,.45); }
+.mp-cell:active { transform: scale(.96); }
 
 @media (max-height: 720px) {
   .cover-cat { width: 58px; height: 58px; margin: 6px auto 3px; }
@@ -919,8 +949,6 @@ body {
   .cover-cal-mv button { width: 14px; height: 14px; font-size: 7px; }
   .cover-cal-week span { font-size: 6px; line-height: 12px; }
   .cover-cal-day { height: 18px; font-size: 7px; border-radius: 3px; }
-  .cover-controls { margin-top: 6px; }
-  .cover-picker { padding: 6px 10px; font-size: 12px; }
   .cover-book { margin-top: 4px; padding: 10px 12px 12px; border-radius: 20px; }
   .cover-btns { padding: 8px 14px calc(10px + env(safe-area-inset-bottom)); gap: 6px; }
   .cover-btn { padding: 10px; font-size: 13px; border-radius: 12px; }
