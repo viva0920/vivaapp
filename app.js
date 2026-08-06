@@ -3173,15 +3173,15 @@
   }
 
   function showDailyScreen(name) {
+    closeDaySheet();
     dailyScreen = name;
-    ["cover", "monthbook", "reader", "editor", "overview"].forEach((s) => {
+    ["cover", "reader", "editor", "overview"].forEach((s) => {
       const el = $("#daily" + s.charAt(0).toUpperCase() + s.slice(1));
       if (el) el.classList.toggle("active", s === name);
     });
     const fab = $("#dailyAddBtn");
-    if (fab) fab.classList.toggle("hidden", !(name === "cover" || name === "monthbook" || name === "reader"));
+    if (fab) fab.classList.toggle("hidden", !(name === "cover" || name === "reader"));
     if (name === "cover") renderCover();
-    else if (name === "monthbook") renderMonthBook();
     else if (name === "reader") renderReader();
     else if (name === "overview") renderOverview();
   }
@@ -3199,37 +3199,59 @@
     dailyNorm();
     const cal = $("#coverCalendar");
     if (!cal) return;
-    const parts = ym.split("-");
-    const y = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
-    const startDow = new Date(y, m - 1, 1).getDay();
-    const days = new Date(y, m, 0).getDate();
-    const wd = ["日", "一", "二", "三", "四", "五", "六"];
+    const [y, m] = ym.split("-").map(Number);
     const today = todayStr();
-    const hasSet = {};
-    state.daily.entries.forEach((e) => {
-      const dd = e.date || "";
-      if (dd.slice(0, 7) === ym) hasSet[dd.slice(8, 10)] = true;
-    });
-    const head = wd.map((w) => "<span>" + w + "</span>").join("");
+    const entries = dailyEntriesOfMonth(ym);
+    const byDate = {};
+    entries.forEach((e) => { (byDate[e.date] = byDate[e.date] || []).push(e); });
+    const moodEmoji = (k) => { const x = DAILY_MOODS.find((d) => d.key === k); return x ? x.label.split(" ")[0] : ""; };
+    const wd = ["日", "一", "二", "三", "四", "五", "六"];
+    const startWeek = new Date(y, m - 1, 1).getDay();
+    const daysInMonth = new Date(y, m, 0).getDate();
+
     let cells = "";
-    for (let i = 0; i < startDow; i++) cells += '<div class="cover-cal-day empty"></div>';
-    for (let d = 1; d <= days; d++) {
-      const ds = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
-      const isToday = ds === today;
-      const dd = String(d).padStart(2, "0");
-      const h = !!hasSet[dd];
-      const cls = isToday ? "today" : (h ? "has" : "");
-      const dot = (h && !isToday) ? '<span class="dot"></span>' : "";
-      cells += '<div class="cover-cal-day ' + cls + '">' + d + dot + "</div>";
+    for (let i = 0; i < 42; i++) {
+      const dayNum = i - startWeek + 1;
+      if (dayNum < 1 || dayNum > daysInMonth) { cells += '<div class="monthbook-cell empty"></div>'; continue; }
+      const dateStr = y + "-" + String(m).padStart(2, "0") + "-" + String(dayNum).padStart(2, "0");
+      const isToday = dateStr === today;
+      const list = byDate[dateStr] || [];
+      const has = list.length > 0;
+      const first = list[0] || null;
+      const me = first ? moodEmoji(first.mood) : "";
+      const sticker = first && first.sticker ? '<span class="cell-sticker">' + stickerSvg(first.sticker) + "</span>" : "";
+      const more = list.length > 1 ? '<span class="cell-more">+' + (list.length - 1) + "</span>" : "";
+      const imgCount = first ? Math.min((first.images || []).length, 3) : 0;
+      let dots = "";
+      if (imgCount) dots = '<div class="cell-dots">' + Array(imgCount).fill('<span></span>').join("") + "</div>";
+      let inner = "";
+      if (isToday) inner += '<div class="cell-today-circle">' + (me ? me : '<span class="num">' + dayNum + "</span>") + "</div>";
+      else inner += '<span class="monthbook-cell-day">' + dayNum + "</span>";
+      if (has) inner += (me && !isToday ? '<div class="cell-mood">' + me + "</div>" : "") + dots + sticker + more;
+      cells += '<div class="monthbook-cell' + (has ? " has" : "") + (isToday ? " today" : "") + '" data-date="' + dateStr + '">' + inner + "</div>";
     }
+
+    const weekHead = wd.map((w) => "<span>" + w + "</span>").join("");
     cal.innerHTML =
       '<div class="cover-cal-head"><span>' + y + '年' + m + '月</span>' +
       '<span class="cover-cal-mv"><button id="coverCalPrev">‹</button><button id="coverCalNext">›</button></span></div>' +
-      '<div class="cover-cal-week">' + head + '</div>' +
-      '<div class="cover-cal-days">' + cells + '</div>';
+      '<div class="monthbook-weekhead">' + weekHead + '</div>' +
+      '<div class="cover-month-grid">' + cells + '</div>' +
+      '<p class="cover-cal-hint">点日期看当天 · 点空白日写新篇</p>';
+
     const prev = $("#coverCalPrev"), next = $("#coverCalNext");
-    if (prev) prev.addEventListener("click", () => { monthbookYm = shiftMonth(ym, -1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
-    if (next) next.addEventListener("click", () => { monthbookYm = shiftMonth(ym, 1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
+    if (prev) prev.addEventListener("click", (e) => { e.stopPropagation(); monthbookYm = shiftMonth(ym, -1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
+    if (next) next.addEventListener("click", (e) => { e.stopPropagation(); monthbookYm = shiftMonth(ym, 1); const cm = $("#coverMonth"); if (cm) cm.value = monthbookYm; buildCoverCalendar(monthbookYm); });
+
+    $$(".monthbook-cell", cal).forEach((cell) => {
+      cell.addEventListener("click", () => {
+        if (cell.classList.contains("empty")) return;
+        const date = cell.dataset.date;
+        const list = byDate[date] || [];
+        if (list.length) openDaySheet(date, list);
+        else { openEditor({ date: date }); showDailyScreen("editor"); }
+      });
+    });
   }
 
   function paintStars(id, cls) {
@@ -3255,78 +3277,8 @@
     return y + "-" + String(m).padStart(2, "0");
   }
 
-  function renderMonthBook() {
-    const ym = monthbookYm;
-    const [y, m] = ym.split("-").map(Number);
-    paintStars("monthbookStars", "mb-star");
-    const cur = $("#monthbookCur");
-    if (cur) cur.textContent = y + "年" + m + "月";
-    const sub = $("#monthbookCursub");
-    if (sub) sub.textContent = "第 " + m + " 月 · 左右滑动或点箭头翻页";
+  // renderMonthBook 已合并进 buildCoverCalendar（方案B：封面即完整可交互月历）
 
-    const entries = dailyEntriesOfMonth(ym);
-    const grid = $("#monthbookGrid");
-    const empty = $("#monthbookEmpty");
-    const desk = $("#monthbookDesk");
-    const bottom = $("#monthbookBottom");
-    if (!grid) return;
-
-    if (entries.length) {
-      if (desk) desk.style.display = "flex";
-      if (empty) empty.style.display = "none";
-    } else {
-      if (desk) desk.style.display = "none";
-      if (empty) empty.style.display = "block";
-    }
-    if (bottom) bottom.style.display = "flex";
-
-    const today = todayStr();
-    const startWeek = new Date(y, m - 1, 1).getDay();
-    const daysInMonth = new Date(y, m, 0).getDate();
-    const byDate = {};
-    entries.forEach((e) => { (byDate[e.date] = byDate[e.date] || []).push(e); });
-    const moodEmoji = (k) => { const x = DAILY_MOODS.find((d) => d.key === k); return x ? x.label.split(" ")[0] : ""; };
-
-    let html = "";
-    for (let i = 0; i < 42; i++) {
-      const dayNum = i - startWeek + 1;
-      if (dayNum < 1 || dayNum > daysInMonth) { html += '<div class="monthbook-cell empty"></div>'; continue; }
-      const dateStr = y + "-" + String(m).padStart(2, "0") + "-" + String(dayNum).padStart(2, "0");
-      const isToday = dateStr === today;
-      const list = byDate[dateStr] || [];
-      const has = list.length > 0;
-      const first = list[0] || null;
-      const me = first ? moodEmoji(first.mood) : "";
-      const sticker = first && first.sticker ? '<span class="cell-sticker">' + stickerSvg(first.sticker) + "</span>" : "";
-      const more = list.length > 1 ? '<span class="cell-more">+' + (list.length - 1) + "</span>" : "";
-      const imgCount = first ? Math.min((first.images || []).length, 3) : 0;
-      let dots = "";
-      if (imgCount) {
-        dots = '<div class="cell-dots">' + Array(imgCount).fill('<span></span>').join("") + "</div>";
-      }
-
-      let inner = "";
-      if (isToday) {
-        inner += '<div class="cell-today-circle">' + (me ? me : '<span class="num">' + dayNum + "</span>") + "</div>";
-      } else {
-        inner += '<span class="monthbook-cell-day">' + dayNum + "</span>";
-      }
-      if (has) {
-        inner += (me && !isToday ? '<div class="cell-mood">' + me + "</div>" : "") + dots + sticker + more;
-      }
-      html += '<div class="monthbook-cell' + (has ? " has" : "") + (isToday ? " today" : "") + '" data-date="' + dateStr + '">' + inner + "</div>";
-    }
-    grid.innerHTML = html;
-
-    $$(".monthbook-cell", grid).forEach((cell) => {
-      cell.addEventListener("click", () => {
-        const date = cell.dataset.date;
-        const list = byDate[date] || [];
-        if (list.length) openDaySheet(date, list);
-        else { openEditor({ date: date }); showDailyScreen("editor"); }
-      });
-    });
-  }
 
   function openDaySheet(dateStr, list) {
     const body = $("#sheetBody");
@@ -3558,7 +3510,7 @@
     readerYm = monthbookYm;
     readerIdx = dailyEntriesOfMonth(readerYm).length - 1;
     if (readerIdx < 0) readerIdx = 0;
-    showDailyScreen("monthbook");
+    showDailyScreen("cover");
   }
   function deleteEntry() {
     if (!editorId) return;
@@ -3566,7 +3518,7 @@
     state.daily.entries = state.daily.entries.filter((x) => x.id !== editorId);
     saveAll();
     editorId = null;
-    showDailyScreen("monthbook");
+    showDailyScreen("cover");
   }
 
   // ---- 封面 / 阅览 / 概览 / 编辑 事件绑定 ----
@@ -3581,10 +3533,10 @@
       try { store.set("wb_last_module", target.dataset.module); } catch (e) {}
     }
   });
-  $("#coverOpenBtn").addEventListener("click", () => { const cm = $("#coverMonth"); monthbookYm = (cm && cm.value) || monthStr(); readerIdx = 0; showDailyScreen("monthbook"); });
+  $("#coverFlipBtn").addEventListener("click", () => { readerYm = monthbookYm; readerIdx = 0; showDailyScreen("reader"); });
   $("#coverNewBtn").addEventListener("click", () => { const cm = $("#coverMonth"); openEditor({ date: defaultNewDate((cm && cm.value) || monthStr()) }); });
   $("#coverMonth").addEventListener("change", () => { const cm = $("#coverMonth"); if (cm) { monthbookYm = cm.value || monthStr(); buildCoverCalendar(monthbookYm); } });
-  $("#readerBack").addEventListener("click", () => showDailyScreen("monthbook"));
+  $("#readerBack").addEventListener("click", () => showDailyScreen("cover"));
   $("#readerOverview").addEventListener("click", () => showDailyScreen("overview"));
   $("#readerMonth").addEventListener("change", () => { const rm = $("#readerMonth"); readerYm = (rm && rm.value) || monthStr(); monthbookYm = readerYm; readerIdx = 0; renderReader(); });
   $("#readerEdit").addEventListener("click", () => { const e = dailyEntriesOfMonth(readerYm)[readerIdx]; if (e) openEditor({ id: e.id }); });
@@ -3592,23 +3544,16 @@
   $("#readerEmptyNew").addEventListener("click", () => openEditor({ date: defaultNewDate(readerYm) }));
   $("#bookPrev").addEventListener("click", () => flipReader(-1));
   $("#bookNext").addEventListener("click", () => flipReader(1));
-  $("#monthbookBack").addEventListener("click", () => showDailyScreen("cover"));
-  $("#monthbookOverview").addEventListener("click", () => showDailyScreen("overview"));
-  $("#monthbookFlip").addEventListener("click", () => { readerYm = monthbookYm; readerIdx = 0; showDailyScreen("reader"); });
-  $("#monthbookAdd").addEventListener("click", () => openEditor({ date: defaultNewDate(monthbookYm) }));
-  $("#monthbookEmptyNew").addEventListener("click", () => openEditor({ date: defaultNewDate(monthbookYm) }));
-  $("#monthbookPrev").addEventListener("click", () => { monthbookYm = shiftMonth(monthbookYm, -1); renderMonthBook(); });
-  $("#monthbookNext").addEventListener("click", () => { monthbookYm = shiftMonth(monthbookYm, 1); renderMonthBook(); });
   $("#monthbookScrim").addEventListener("click", closeDaySheet);
   $("#coverOverview").addEventListener("click", () => showDailyScreen("overview"));
-  $("#editorBack").addEventListener("click", () => showDailyScreen("monthbook"));
+  $("#editorBack").addEventListener("click", () => showDailyScreen("cover"));
   $("#editorSave").addEventListener("click", saveEntry);
   $("#editorDelete").addEventListener("click", deleteEntry);
   $("#editorCamera").addEventListener("change", () => handleEditorFile($("#editorCamera")));
   $("#editorGallery").addEventListener("change", () => handleEditorFile($("#editorGallery")));
   $$(".sticker-opt").forEach((b) => b.addEventListener("click", () => { editorSticker = b.dataset.sticker; renderStickerPreview(); }));
-  $("#ovBack").addEventListener("click", () => showDailyScreen("monthbook"));
-  $("#dailyAddBtn").addEventListener("click", () => openEditor({ date: defaultNewDate(dailyScreen === "monthbook" ? monthbookYm : monthStr()) }));
+  $("#ovBack").addEventListener("click", () => showDailyScreen("cover"));
+  $("#dailyAddBtn").addEventListener("click", () => openEditor({ date: defaultNewDate(dailyScreen === "cover" ? monthbookYm : monthStr()) }));
   bindBookSwipe();
 
   /* =========================================================
