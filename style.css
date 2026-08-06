@@ -1168,12 +1168,14 @@ body {
 .paper-file-btn:active { background: #fff0f6; }
 .editor-bottom {
   display: flex;
+  justify-content: flex-end;
   gap: 12px;
   padding: 8px 18px calc(16px + env(safe-area-inset-bottom));
   flex-shrink: 0;
   background: #fbf6f0;
   z-index: 3;
 }
+#editorDelete { flex: 0 0 auto; padding: 11px 22px; }
 .editor-btn {
   flex: 1; border: none; border-radius: 16px; padding: 13px; font-family: inherit; font-size: 15px; cursor: pointer;
 }
@@ -1224,7 +1226,22 @@ body {
 .editor-top {
   position: static;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
 }
+.editor-top .editor-title { flex: 1 1 auto; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-save-btn {
+  flex: 0 0 auto;
+  border: none; border-radius: 14px; padding: 9px 16px;
+  font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  background: linear-gradient(135deg, #ffb3d1, #ff8fb4); color: #fff;
+  box-shadow: 0 4px 10px rgba(255,140,180,.35);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.editor-save-btn:active { transform: scale(.95); box-shadow: 0 2px 6px rgba(255,140,180,.4); }
 
 /* 右上角备份/恢复浮层：替代被隐藏的顶栏，功能保留；z-index 低于手账屏(50)，手账页打开时自动被盖住 */
 .backup-bar {
