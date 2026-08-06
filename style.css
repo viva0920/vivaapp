@@ -1044,13 +1044,15 @@ body {
 .monthbook-scrim.show { opacity: 1; pointer-events: auto; }
 .monthbook-sheet {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: #fff;
-  border-radius: 24px 24px 0 0; padding: 18px 20px 26px; transform: translateY(110%);
+  border-radius: 24px 24px 0 0; padding: 18px 20px calc(26px + env(safe-area-inset-bottom)); transform: translateY(110%);
   transition: transform .32s cubic-bezier(.2,.8,.2,1); box-shadow: 0 -10px 40px rgba(0,0,0,.4);
-  max-height: 72%; overflow-y: auto;
+  max-height: calc(100% - 120px);
+  display: flex; flex-direction: column;
 }
 .monthbook-sheet.open { transform: translateY(0); }
-.sheet-grab { width: 40px; height: 4px; border-radius: 2px; background: #e0d6f0; margin: 0 auto 12px; }
-.sheet-date { font-size: 18px; font-weight: 800; color: #5a3ba0; margin-bottom: 10px; }
+.sheet-grab { width: 40px; height: 4px; border-radius: 2px; background: #e0d6f0; margin: 0 auto 12px; flex-shrink: 0; }
+.sheet-date { font-size: 18px; font-weight: 800; color: #5a3ba0; margin-bottom: 10px; flex-shrink: 0; }
+.sheet-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
 .sheet-entry { padding: 10px 0; border-bottom: 1px solid #f0eaf8; }
 .sheet-entry:last-child { border-bottom: none; }
 .sheet-mood { font-size: 13px; background: #f3ecff; color: #7a4fd0; padding: 4px 12px; border-radius: 12px; display: inline-block; margin-bottom: 6px; }
