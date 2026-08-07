@@ -835,15 +835,17 @@ body {
   font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 4px 12px; border-radius: 999px;
   box-shadow: 0 4px 12px rgba(150,90,255,.45);
 }
+.cover-hero { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; text-align: left; }
 .cover-cat {
-  width: 72px; height: 72px; border-radius: 50%; overflow: hidden; margin: 8px auto 4px; display: flex;
+  width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex;
   align-items: center; justify-content: center;
   background: radial-gradient(circle at 50% 35%, #fff, #f0e6ff);
   box-shadow: 0 8px 20px rgba(120,80,200,.35), inset 0 0 0 3px #fff;
 }
 .cover-cat-img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.cover-title { font-size: 20px; font-weight: 900; color: #5a3ba0; letter-spacing: 1px; }
-.cover-sub { font-size: 10px; color: #9b86c9; margin-top: 1px; letter-spacing: 2px; }
+.cover-hero-text { text-align: left; }
+.cover-title { font-size: 19px; font-weight: 900; color: #5a3ba0; letter-spacing: 1px; text-align: left; }
+.cover-sub { font-size: 10px; color: #9b86c9; margin-top: 1px; letter-spacing: 2px; text-align: left; }
 
 /* 封面迷你月历（极简紧凑版） */
 .cover-cal {
@@ -941,7 +943,7 @@ body {
 .mp-cell:active { transform: scale(.96); }
 
 @media (max-height: 720px) {
-  .cover-cat { width: 58px; height: 58px; margin: 6px auto 3px; }
+  .cover-cat { width: 42px; height: 42px; margin: 0; }
   .cover-title { font-size: 17px; }
   .cover-sub { font-size: 9px; }
   .cover-cal { margin-top: 4px; padding: 3px 2px; border-radius: 8px; }
