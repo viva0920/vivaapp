@@ -9,8 +9,9 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  const todayStr = () => new Date().toISOString().slice(0, 10);
-  const monthStr = (d = new Date()) => d.toISOString().slice(0, 7);
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const todayStr = () => { const d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); };
+  const monthStr = (d = new Date()) => { d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1); };
   const fmt = (n) => "¥" + (Math.round(n * 100) / 100).toLocaleString("zh-CN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -3802,7 +3803,7 @@
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
-    const ts = new Date().toISOString().slice(0, 10);
+    const ts = todayStr();
     a.href = URL.createObjectURL(blob);
     a.download = "小熊工作台备份_" + ts + ".json";
     document.body.appendChild(a);
