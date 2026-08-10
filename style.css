@@ -732,6 +732,23 @@ body {
   .bp-stat b i { font-style: normal; font-size: 11px; color: var(--ink-soft); }
   .bp-chart { background: #fff7fb; border: 1px solid #ffe1ec; border-radius: 14px; padding: 10px; margin-bottom: 12px; }
   .bp-chart-title { font-size: 13px; font-weight: 800; color: var(--pink-deep); margin-bottom: 8px; }
+  .bp-chart-box { background: #fff7fb; border: 1px solid #ffe1ec; border-radius: 14px; padding: 10px; margin-bottom: 12px; }
+  .bp-chart-box .bp-chart { background: transparent; border: none; border-radius: 0; padding: 0; margin-bottom: 0; }
+  .bp-chart-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .bp-chart-head .bp-chart-title { margin-bottom: 0; }
+  .bp-chart-back { flex: 0 0 auto; border: 1px solid #ffc2dd; background: #fff; color: var(--pink-deep); font-family: inherit; font-size: 12px; font-weight: 700; border-radius: 12px; padding: 4px 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .bp-chart-back:active { background: #ffe9f2; }
+  .bp-chart-hint { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 24px 8px; }
+  .bp-svg { display: block; }
+  .bp-day-hit { fill: transparent; cursor: pointer; }
+  .bp-day-hit:hover { fill: rgba(255,140,180,.10); }
+  .bp-day-detail { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .bp-dd-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 8px; background: #fff; border: 1px solid #ffe1ec; border-radius: 10px; }
+  .bp-dd-time { font-weight: 800; color: var(--ink); min-width: 38px; }
+  .bp-dd-val { font-weight: 700; color: var(--pink-deep); }
+  .bp-dd-val b { font-size: 13px; }
+  .bp-dd-slot { font-size: 11px; }
+  .bp-dd-badge { margin-left: auto; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
   .bp-list { display: flex; flex-direction: column; gap: 8px; }
   .bp-item { display: flex; align-items: flex-start; gap: 8px; background: #fff7fb; border: 1px solid #ffe1ec; border-left: 6px solid #7ec8a0; border-radius: 14px; padding: 10px 12px; }
   .bp-item.bp-lv-border { border-left-color: #f5a623; background: #fffaf0; }
