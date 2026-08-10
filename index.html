@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=27" />
+  <link rel="stylesheet" href="style.css?v=28" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -455,7 +455,11 @@
             <div class="bp-ref-note">注：当收缩压和舒张压分属不同级别时，以较高级别为准。</div>
           </div>
         </details>
-        <div class="bp-chart" id="bpChart"></div>
+        <div class="bp-chart-box" id="bpChartBox">
+          <div class="bp-chart-head" id="bpChartHead"></div>
+          <div class="bp-chart" id="bpChart"></div>
+          <div class="bp-day-detail" id="bpDayDetail"></div>
+        </div>
         <div class="bp-chart">
           <div class="bp-chart-title">📅 月度波动（每月平均血压）</div>
           <div id="bpMonthChart"></div>
@@ -858,6 +862,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=25"></script>
+  <script src="app.js?v=26"></script>
 </body>
 </html>
