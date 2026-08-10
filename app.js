@@ -2824,6 +2824,7 @@
     if (typeof state.bp._editingId === "undefined") state.bp._editingId = null;
     if (typeof state.bp._batch === "undefined") state.bp._batch = false;
     if (!Array.isArray(state.bp._sel)) state.bp._sel = [];
+    if (typeof state.bp._drill === "undefined") state.bp._drill = "";
   }
 
   function bpLevel(sbp, dbp) {
@@ -2874,40 +2875,183 @@
     };
   }
 
-  function drawBpChart(recs) {
-    if (recs.length < 2) return "";
-    const W = 320, H = 200, padL = 34, padR = 12, padT = 16, padB = 26;
-    const all = recs.map((r) => r.sbp).concat(recs.map((r) => r.dbp));
+  // 测量场景：晨 / 睡(晚/夜) / 其他 —— 用于曲线上的形状与颜色区分
+  function bpSlotKind(slot) {
+    const s = slot || "";
+    if (s.indexOf("晨") >= 0) return "morning";
+    if (s.indexOf("睡") >= 0 || s.indexOf("晚") >= 0 || s.indexOf("夜") >= 0) return "night";
+    return "random";
+  }
+
+  // 按天聚合：每天一个均值点 + 当日波动范围(minV~maxV)
+  function bpGroupByDay(recs) {
+    const map = {};
+    recs.forEach((r) => {
+      const d = (r.dt || "").slice(0, 10);
+      if (!d) return;
+      (map[d] = map[d] || []).push(r);
+    });
+    return Object.keys(map).sort().map((d) => {
+      const rs = map[d];
+      const avg = (a) => Math.round(a.reduce((s, x) => s + x, 0) / a.length);
+      const allv = rs.map((x) => x.sbp).concat(rs.map((x) => x.dbp));
+      return {
+        date: d, recs: rs,
+        meanSbp: avg(rs.map((x) => x.sbp)), meanDbp: avg(rs.map((x) => x.dbp)),
+        minV: Math.min.apply(null, allv), maxV: Math.max.apply(null, allv),
+      };
+    });
+  }
+
+  // 趋势视图：X 轴=天，按天均值折线 + 当日波动带（思路1）+ 点某天下钻（思路5）
+  function drawBpTrendChart(days) {
+    const W = 320, H = 216, padL = 34, padR = 12, padT = 16, padB = 30;
+    const all = days.map((d) => d.meanSbp).concat(days.map((d) => d.meanDbp));
     let min = Math.min.apply(null, all), max = Math.max.apply(null, all);
     if (min === max) { min -= 6; max += 6; }
     const span = max - min; min -= span * 0.15; max += span * 0.15;
-    const n = recs.length;
-    const x = (i) => padL + (i * (W - padL - padR)) / (n - 1);
-    const y = (v) => padT + (1 - (v - min) / (max - min)) * (H - padT - padB);
+    const n = days.length;
+    const colW = (W - padL - padR) / n;
+    const cx = (i) => padL + colW * (i + 0.5);
+    const plotB = H - padB;
+    const y = (v) => padT + (1 - (v - min) / (max - min)) * (plotB - padT);
     let svg = "";
     for (let g = 0; g <= 3; g++) {
-      const gy = padT + (g * (H - padT - padB)) / 3;
+      const gy = padT + (g * (plotB - padT)) / 3;
       const val = max - (g * (max - min)) / 3;
       svg += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="#ffe1ec" stroke-width="1"/>';
       svg += '<text x="' + (padL - 3) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#a08a98">' + Math.round(val) + '</text>';
     }
+    // 当日波动带（minV~maxV）
+    days.forEach((d, i) => {
+      const x1 = cx(i) - colW * 0.32, x2 = cx(i) + colW * 0.32;
+      const yTop = y(d.maxV), yBot = y(d.minV);
+      svg += '<rect x="' + x1 + '" y="' + yTop + '" width="' + (x2 - x1) + '" height="' + Math.max(2, yBot - yTop) + '" fill="rgba(255,140,180,.16)" rx="3"/>';
+    });
     const line = (key, color) => {
-      let s = '<polyline points="';
-      s += recs.map((r, i) => x(i) + "," + y(r[key])).join(" ");
-      s += '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-      recs.forEach((r, i) => { s += '<circle cx="' + x(i) + '" cy="' + y(r[key]) + '" r="3" fill="#fff" stroke="' + color + '" stroke-width="2"/>'; });
+      let s = '<polyline points="' + days.map((d, i) => cx(i) + "," + y(d[key])).join(" ") + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      days.forEach((d, i) => { s += '<circle cx="' + cx(i) + '" cy="' + y(d[key]) + '" r="3" fill="#fff" stroke="' + color + '" stroke-width="2"/>'; });
       return s;
     };
-    svg += line("dbp", "#54a0ff");
-    svg += line("sbp", "#ff6f91");
-    const step = Math.ceil(n / 5);
-    recs.forEach((r, i) => {
+    svg += line("meanDbp", "#54a0ff");
+    svg += line("meanSbp", "#ff6f91");
+    const step = Math.ceil(n / 6);
+    days.forEach((d, i) => {
       if (i % step === 0 || i === n - 1)
-        svg += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9" fill="#a08a98">' + (r.dt || "").slice(5, 10) + '</text>';
+        svg += '<text x="' + cx(i) + '" y="' + (plotB + 15) + '" text-anchor="middle" font-size="9" fill="#a08a98">' + d.date.slice(5) + '</text>';
     });
-    svg += '<rect x="' + padL + '" y="' + (H - 1) + '" width="10" height="3" fill="#ff6f91"/><text x="' + (padL + 14) + '" y="' + (H + 1) + '" font-size="9" fill="#a08a98">高压</text>';
-    svg += '<rect x="' + (padL + 52) + '" y="' + (H - 1) + '" width="10" height="3" fill="#54a0ff"/><text x="' + (padL + 66) + '" y="' + (H + 1) + '" font-size="9" fill="#a08a98">低压</text>';
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet">' + svg + '</svg>';
+    // 透明热区：点某天 → 下钻
+    days.forEach((d, i) => {
+      svg += '<rect class="bp-day-hit" data-date="' + d.date + '" x="' + (cx(i) - colW / 2) + '" y="' + padT + '" width="' + colW + '" height="' + (plotB - padT) + '"/>';
+    });
+    // 图例
+    svg += '<rect x="' + padL + '" y="' + (plotB + 22) + '" width="10" height="3" fill="#ff6f91"/><text x="' + (padL + 14) + '" y="' + (plotB + 25) + '" font-size="9" fill="#a08a98">高压</text>';
+    svg += '<rect x="' + (padL + 52) + '" y="' + (plotB + 22) + '" width="10" height="3" fill="#54a0ff"/><text x="' + (padL + 66) + '" y="' + (plotB + 25) + '" font-size="9" fill="#a08a98">低压</text>';
+    svg += '<rect x="' + (padL + 104) + '" y="' + (plotB + 19) + '" width="10" height="6" fill="rgba(255,140,180,.4)" rx="2"/><text x="' + (padL + 118) + '" y="' + (plotB + 25) + '" font-size="9" fill="#a08a98">当日波动</text>';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet" class="bp-svg">' + svg + '</svg>';
+  }
+
+  // 当日视图：X 轴=真实测量时刻，点按场景形状/颜色区分（思路2 + 思路3）
+  function drawBpDayChart(recs) {
+    recs = recs.slice().sort((a, b) => (a.dt < b.dt ? -1 : 1));
+    const W = 320, H = 216, padL = 34, padR = 12, padT = 16, padB = 30;
+    const all = recs.map((r) => r.sbp).concat(recs.map((r) => r.dbp));
+    let min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+    if (min === max) { min -= 6; max += 6; }
+    const span = max - min; min -= span * 0.15; max += span * 0.15;
+    const toMin = (t) => { const p = t.split(":"); return (+p[0]) * 60 + (+p[1]); };
+    const tvals = recs.map((r) => toMin(r.dt.slice(11, 16)));
+    const tmin = Math.min.apply(null, tvals), tmax = Math.max.apply(null, tvals);
+    const plotB = H - padB;
+    const x = (t) => (tmax === tmin ? (padL + W - padR) / 2 : padL + (t - tmin) / (tmax - tmin) * (W - padL - padR));
+    const y = (v) => padT + (1 - (v - min) / (max - min)) * (plotB - padT);
+    let svg = "";
+    for (let g = 0; g <= 3; g++) {
+      const gy = padT + (g * (plotB - padT)) / 3;
+      const val = max - (g * (max - min)) / 3;
+      svg += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="#ffe1ec" stroke-width="1"/>';
+      svg += '<text x="' + (padL - 3) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#a08a98">' + Math.round(val) + '</text>';
+    }
+    // 当日趋势连线（虚线）
+    svg += '<polyline points="' + recs.map((r) => x(toMin(r.dt.slice(11, 16))) + "," + y(r.sbp)).join(" ") + '" fill="none" stroke="#ff6f91" stroke-width="1.6" stroke-dasharray="4 3" opacity=".45"/>';
+    svg += '<polyline points="' + recs.map((r) => x(toMin(r.dt.slice(11, 16))) + "," + y(r.dbp)).join(" ") + '" fill="none" stroke="#54a0ff" stroke-width="1.6" stroke-dasharray="4 3" opacity=".45"/>';
+    recs.forEach((r) => {
+      const xx = x(toMin(r.dt.slice(11, 16))), kind = bpSlotKind(r.slot);
+      const cs = kind === "morning" ? "#ff8fb4" : kind === "night" ? "#54a0ff" : "#7bd88f";
+      const dot = (vy, r2, op) => {
+        if (kind === "night") svg += '<rect x="' + (xx - r2) + '" y="' + (vy - r2) + '" width="' + (r2 * 2) + '" height="' + (r2 * 2) + '" fill="' + cs + '" rx="1.5" opacity="' + op + '"/>';
+        else if (kind === "random") svg += '<circle cx="' + xx + '" cy="' + vy + '" r="' + r2 + '" fill="#fff" stroke="' + cs + '" stroke-width="2" opacity="' + op + '"/>';
+        else svg += '<circle cx="' + xx + '" cy="' + vy + '" r="' + r2 + '" fill="' + cs + '" opacity="' + op + '"/>';
+      };
+      dot(y(r.sbp), 4, 1);
+      dot(y(r.dbp), 2.8, 0.8);
+    });
+    const step = Math.max(1, Math.ceil(recs.length / 6));
+    recs.forEach((r, i) => {
+      if (i % step === 0 || i === recs.length - 1)
+        svg += '<text x="' + x(toMin(r.dt.slice(11, 16))) + '" y="' + (plotB + 15) + '" text-anchor="middle" font-size="9" fill="#a08a98">' + r.dt.slice(11, 16) + '</text>';
+    });
+    // 场景图例
+    svg += '<circle cx="' + (padL + 6) + '" cy="' + (plotB + 24) + '" r="4" fill="#ff8fb4"/><text x="' + (padL + 14) + '" y="' + (plotB + 27) + '" font-size="9" fill="#a08a98">晨起</text>';
+    svg += '<rect x="' + (padL + 52) + '" y="' + (plotB + 20) + '" width="8" height="8" fill="#54a0ff" rx="1.5"/><text x="' + (padL + 64) + '" y="' + (plotB + 27) + '" font-size="9" fill="#a08a98">睡前</text>';
+    svg += '<circle cx="' + (padL + 104) + '" cy="' + (plotB + 24) + '" r="4" fill="#fff" stroke="#7bd88f" stroke-width="2"/><text x="' + (padL + 112) + '" y="' + (plotB + 27) + '" font-size="9" fill="#a08a98">其他</text>';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet" class="bp-svg">' + svg + '</svg>';
+  }
+
+  // 图表区域总调度：趋势 / 当日下钻
+  function renderBpChartArea(recs) {
+    const head = $("#bpChartHead"), detail = $("#bpDayDetail"), chart = $("#bpChart");
+    // 先判定是否进入「当日视图」
+    let mode = { isDay: false, date: null };
+    if (state.bp._drill) mode = { isDay: true, date: state.bp._drill };
+    else if (state.bp.filter === "day") mode = { isDay: true, date: todayStr() };
+    if (mode.isDay) {
+      const dayRecs = recs.filter((r) => (r.dt || "").slice(0, 10) === mode.date);
+      if (dayRecs.length) {
+        head.innerHTML = '<span class="bp-chart-title">🕐 ' + mode.date.slice(5) + ' 当日测量（按时间）</span><button class="bp-chart-back" id="bpChartBack">‹ 返回趋势</button>';
+        chart.innerHTML = drawBpDayChart(dayRecs);
+        detail.innerHTML = dayRecs.map((r) => {
+          const lv = bpLevel(r.sbp, r.dbp), L = BP_LEVELS[lv], kind = bpSlotKind(r.slot);
+          const kcol = kind === "morning" ? "#ff8fb4" : kind === "night" ? "#54a0ff" : "#7bd88f";
+          return '<div class="bp-dd-item"><span class="bp-dd-time">' + ((r.dt || "").slice(11, 16) || "--") + '</span>'
+            + '<span class="bp-dd-val"><b>' + r.sbp + '</b>/<b>' + r.dbp + '</b></span>'
+            + '<span class="bp-dd-slot" style="color:' + kcol + '">● ' + escapeHtml(r.slot || "随机") + '</span>'
+            + '<span class="bp-dd-badge" style="background:' + L.bg + ';color:' + L.fg + '">' + L.label + '</span></div>';
+        }).join("");
+        const back = $("#bpChartBack");
+        if (back) back.onclick = () => { state.bp._drill = ""; renderBp(); };
+        bindBpChartClicks();
+        return;
+      }
+      mode = { isDay: false, date: null };
+    }
+    // 趋势视图
+    if (recs.length < 2) {
+      head.innerHTML = ""; detail.innerHTML = "";
+      chart.innerHTML = '<div class="bp-chart-hint">至少需要 2 条记录才能绘制趋势曲线～</div>';
+      return;
+    }
+    const days = bpGroupByDay(recs);
+    if (days.length < 2) {
+      head.innerHTML = ""; detail.innerHTML = "";
+      chart.innerHTML = '<div class="bp-chart-hint">至少需要 2 天的数据才能看趋势～</div>';
+      return;
+    }
+    head.innerHTML = '<span class="bp-chart-title">📈 血压趋势（按天 · 点某天看明细）</span>';
+    chart.innerHTML = drawBpTrendChart(days);
+    detail.innerHTML = "";
+    bindBpChartClicks();
+  }
+
+  function bindBpChartClicks() {
+    const c = $("#bpChart");
+    if (!c) return;
+    c.querySelectorAll(".bp-day-hit").forEach((rect) => {
+      rect.addEventListener("click", () => {
+        const dt = rect.getAttribute("data-date");
+        if (dt) { state.bp._drill = dt; renderBp(); }
+      });
+    });
   }
 
   function drawBpMonthChart(allRecs) {
@@ -3018,7 +3162,7 @@
         + '<div class="bp-stat"><span>平均心率</span><b>' + (st.hrAvg != null ? st.hrAvg : "—") + '</b></div>'
       : '<div class="bp-stat"><span>暂无数据</span><b>—</b></div>';
 
-    $("#bpChart").innerHTML = recs.length >= 2 ? drawBpChart(recs.slice().sort((a, b) => (a.dt < b.dt ? -1 : a.dt > b.dt ? 1 : 0))) : "";
+    renderBpChartArea(recs);
     const bpMonthEl = $("#bpMonthChart");
     if (bpMonthEl) bpMonthEl.innerHTML = drawBpMonthChart(state.bp.records.slice());
 
