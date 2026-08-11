@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=28" />
+  <link rel="stylesheet" href="style.css?v=29" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -276,6 +276,23 @@
             <div class="dstat-label">还需/天数</div>
             <div class="dstat-value"><span id="remainDays">—</span></div>
           </div>
+        </div>
+
+        <div class="bmi-card" id="bmiCard">
+          <div class="bmi-head">
+            <span class="bmi-title">📊 我的 BMI</span>
+            <span class="bmi-cat none" id="bmiCat">待完善</span>
+          </div>
+          <div class="bmi-value"><span id="bmiValue">—</span></div>
+          <div class="bmi-bar">
+            <div class="bmi-seg seg-low"></div>
+            <div class="bmi-seg seg-normal"></div>
+            <div class="bmi-seg seg-over"></div>
+            <div class="bmi-seg seg-obese"></div>
+            <div class="bmi-pointer" id="bmiPointer" style="display:none"></div>
+          </div>
+          <div class="bmi-scale"><span>偏瘦</span><span>正常</span><span>超重</span><span>肥胖</span></div>
+          <div class="bmi-hint" id="bmiHint">完善身高和体重后，自动帮你算 BMI～</div>
         </div>
 
         <button id="editProfileBtn" class="ghost-btn slim">⚙️ 完善身材信息，计划更精准</button>
@@ -862,6 +879,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
