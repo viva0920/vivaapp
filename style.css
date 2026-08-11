@@ -1322,3 +1322,52 @@ body {
   .daily-screen.daily-editor.active { display: flex !important; flex-direction: column; overflow: hidden; height: 100%; }
   .paper-sheet { flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; }
 }
+
+/* ===== 减肥模块 · BMI 卡片（方案A：大数字 + 分段色带） ===== */
+.bmi-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+  margin: 12px 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .05);
+}
+.bmi-head { display: flex; justify-content: space-between; align-items: center; }
+.bmi-title { font-weight: 700; color: #3a3140; font-size: 15px; }
+.bmi-cat {
+  font-size: 12.5px; font-weight: 700; padding: 3px 12px; border-radius: 999px;
+  background: #f0eef2; color: #a08a98;
+}
+.bmi-cat.none { background: #f0eef2; color: #a08a98; }
+.bmi-cat.low { background: #e6f0ff; color: #3b7dd8; }
+.bmi-cat.normal { background: #d8f5ec; color: #1D9E75; }
+.bmi-cat.over { background: #fff0db; color: #d98324; }
+.bmi-cat.obese { background: #ffe3e3; color: #e5484d; }
+.bmi-value {
+  font-size: 40px; font-weight: 800; color: #3a3140; line-height: 1.15;
+  margin: 8px 0 12px; letter-spacing: -.5px;
+}
+.bmi-bar {
+  position: relative;
+  display: flex;
+  height: 13px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.bmi-seg { height: 100%; }
+.seg-low { width: 17.5%; background: #8ec5ff; }
+.seg-normal { width: 27.5%; background: #54c7b3; }
+.seg-over { width: 20%; background: #ffb454; }
+.seg-obese { width: 35%; background: #ff7a7a; }
+.bmi-pointer {
+  position: absolute; top: -4px; width: 3px; height: 21px;
+  background: #2b2530; border-radius: 2px; transform: translateX(-50%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+}
+.bmi-scale {
+  display: flex; margin-top: 6px;
+  font-size: 11px; color: #a08a98;
+}
+.bmi-scale span { flex: 1; text-align: center; }
+.bmi-hint {
+  margin-top: 9px; font-size: 12px; color: #a08a98; text-align: center;
+}
