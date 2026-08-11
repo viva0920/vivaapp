@@ -700,6 +700,8 @@
     weekPlan: $("#weekPlan"), weekToggle: $("#weekToggle"),
     planTotalKcal: $("#planTotalKcal"), planProtein: $("#planProtein"),
     exLibList: $("#exLibList"),
+    bmiCard: $("#bmiCard"), bmiValue: $("#bmiValue"), bmiCat: $("#bmiCat"),
+    bmiPointer: $("#bmiPointer"), bmiHint: $("#bmiHint"),
   };
   const planDate = () => diet.foodDate.value || todayStr();
 
@@ -1020,6 +1022,43 @@
     return ws.length ? ws[0].weight : (state.profile && state.profile.weight) || null;
   }
 
+  function computeBmi() {
+    const w = currentWeight();
+    const h = state.profile && state.profile.height;
+    if (!w || !h) return null;
+    const m = h / 100;
+    const bmi = w / (m * m);
+    let cat, key;
+    if (bmi < 18.5) { cat = "偏瘦"; key = "low"; }
+    else if (bmi < 24) { cat = "正常"; key = "normal"; }
+    else if (bmi < 28) { cat = "超重"; key = "over"; }
+    else { cat = "肥胖"; key = "obese"; }
+    const lo = 18.5 * m * m, hi = 24 * m * m;
+    return { bmi, cat, key, lo, hi };
+  }
+
+  function renderBmi() {
+    if (!diet.bmiCard) return;
+    const r = computeBmi();
+    if (!r) {
+      diet.bmiValue.textContent = "—";
+      diet.bmiCat.textContent = "待完善";
+      diet.bmiCat.className = "bmi-cat none";
+      if (diet.bmiPointer) diet.bmiPointer.style.display = "none";
+      diet.bmiHint.textContent = "完善身高和体重后，自动帮你算 BMI～";
+      return;
+    }
+    diet.bmiValue.textContent = r.bmi.toFixed(1);
+    diet.bmiCat.textContent = r.cat;
+    diet.bmiCat.className = "bmi-cat " + r.key;
+    if (diet.bmiPointer) {
+      diet.bmiPointer.style.display = "block";
+      const pos = Math.max(0, Math.min(100, ((r.bmi - 15) / 20) * 100));
+      diet.bmiPointer.style.left = pos + "%";
+    }
+    diet.bmiHint.textContent = `标准体重约 ${r.lo.toFixed(1)}–${r.hi.toFixed(1)}kg`;
+  }
+
   function computeKcalTarget() {
     const w = currentWeight();
     const p = state.profile;
@@ -1274,6 +1313,7 @@
   }
 
   function renderDiet() {
+    renderBmi();
     const ws = [...state.weights].sort((a, b) => (a.date < b.date ? -1 : 1));
     if (!ws.length) {
       diet.cur.textContent = "—"; diet.lost.textContent = "—"; diet.goal.textContent = state.goal || "—";
