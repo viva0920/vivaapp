@@ -1371,3 +1371,23 @@ body {
 .bmi-hint {
   margin-top: 9px; font-size: 12px; color: #a08a98; text-align: center;
 }
+
+/* ===== 从下厨房导入弹窗 ===== */
+.bake-actions { display: flex; gap: 10px; margin-top: 10px; }
+.bake-actions .primary-btn { flex: 1; margin-top: 0; }
+.modal-sub { font-size: 13px; color: #a08a98; margin: -2px 0 12px; line-height: 1.5; }
+.xcf-drop {
+  border: 2px dashed #ffd0a8; border-radius: 16px; background: #fff8f1;
+  padding: 22px 14px; text-align: center; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.xcf-drop:active { background: #fff1e3; }
+.xcf-drop-inner { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #b08a6a; font-size: 14px; }
+.xcf-ico { font-size: 30px; }
+.xcf-hint { font-size: 11px; color: #c2a489; }
+.xcf-preview { width: 100%; max-height: 260px; object-fit: contain; border-radius: 12px; border: 1px solid #ffe2c7; }
+.xcf-progress { margin: 12px 0; }
+.xcf-bar { height: 8px; background: #ffe9d6; border-radius: 6px; overflow: hidden; }
+.xcf-bar i { display: block; height: 100%; width: 0%; background: linear-gradient(135deg, #ffd3a8, #ffb06b); transition: width .2s; }
+.xcf-progress span { display: block; margin-top: 6px; font-size: 12px; color: #b08a6a; text-align: center; }
+.xcf-result { margin-top: 6px; animation: fade .2s; }
+.xcf-note { font-size: 12px; color: #e5894d; background: #fff3e9; border-radius: 10px; padding: 8px 10px; margin: 4px 0 0; }
