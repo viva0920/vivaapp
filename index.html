@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=30" />
+  <link rel="stylesheet" href="style.css?v=31" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -409,7 +409,7 @@
 
         <div class="bake-actions">
           <button id="addRecipeBtn" class="primary-btn bake">➕ 添加食谱</button>
-          <button id="importXcfBtn" class="primary-btn bake outline">📥 从下厨房导入</button>
+          <button id="importBtn" class="primary-btn bake outline">📋 从下厨房导入</button>
         </div>
 
         <div id="recipeGrid" class="recipe-grid"></div>
@@ -683,43 +683,34 @@
     </div>
   </div>
 
-  <!-- 从下厨房导入弹窗 -->
-  <div id="importXcfModal" class="modal-mask">
+  <!-- 从下厨房导入弹窗（粘贴文字） -->
+  <div id="importModal" class="modal-mask">
     <div class="modal">
-      <h3>📥 从下厨房导入</h3>
-      <p class="modal-sub">在下厨房打开食谱 → 截一张图（菜名 + 用料 + 步骤都带上）→ 选进来就能识别</p>
-      <div class="xcf-drop" id="xcfDrop">
-        <input type="file" id="xcfFile" accept="image/*" hidden />
-        <div class="xcf-drop-inner" id="xcfDropInner">
-          <div class="xcf-ico">🖼️</div>
-          <div>点击选择 / 粘贴截图</div>
-          <div class="xcf-hint">支持手机截图，自动识别中文</div>
-        </div>
-        <img id="xcfPreview" class="xcf-preview" alt="截图预览" hidden />
+      <h3>📋 从下厨房导入</h3>
+      <p class="modal-sub">在下厨房打开食谱 → 长按全选复制文字（菜名 + 用料 + 步骤）→ 粘贴到下面 → 自动解析</p>
+      <div class="field">
+        <label>粘贴下厨房食谱文字</label>
+        <textarea id="importText" rows="8" placeholder="在下厨房 App 里长按食谱内容，全选复制，粘贴到这里"></textarea>
       </div>
-      <div class="xcf-progress" id="xcfProgress" hidden>
-        <div class="xcf-bar"><i id="xcfBar"></i></div>
-        <span id="xcfStatus">识别中… 0%</span>
-      </div>
-      <button id="xcfRecognize" class="primary-btn bake" disabled>✨ 开始识别</button>
-      <div class="xcf-result" id="xcfResult" hidden>
+      <button id="importParse" class="primary-btn bake" disabled>✨ 解析</button>
+      <div class="xcf-result" id="importResult" hidden>
         <div class="field">
           <label>菜名</label>
-          <input type="text" id="xcfName" maxlength="20" placeholder="识别出的菜名" />
+          <input type="text" id="importName" maxlength="20" placeholder="解析出的菜名" />
         </div>
         <div class="field">
           <label>食材（每行一种，如：鸡蛋 3个）</label>
-          <textarea id="xcfIng" rows="4" placeholder="识别出的用料"></textarea>
+          <textarea id="importIng" rows="4" placeholder="解析出的用料"></textarea>
         </div>
         <div class="field">
           <label>步骤（每行一步）</label>
-          <textarea id="xcfSteps" rows="5" placeholder="识别出的步骤"></textarea>
+          <textarea id="importSteps" rows="5" placeholder="解析出的步骤"></textarea>
         </div>
-        <p class="xcf-note">⚠️ AI 识别可能有误，请核对后再保存</p>
+        <p class="xcf-note">⚠️ 解析可能有误，请核对后再保存</p>
       </div>
       <div class="modal-actions">
-        <button id="xcfCancel" class="ghost-btn">取消</button>
-        <button id="xcfSave" class="primary-btn bake" disabled>💾 存入食谱库</button>
+        <button id="importCancel" class="ghost-btn">取消</button>
+        <button id="importSave" class="primary-btn bake" disabled>💾 存入食谱库</button>
       </div>
     </div>
   </div>
@@ -923,7 +914,6 @@
     </div>
   </div>
 
-  <script src="vendor/tesseract/tesseract.min.js?v=2"></script>
-  <script src="app.js?v=29"></script>
+  <script src="app.js?v=30"></script>
 </body>
 </html>
