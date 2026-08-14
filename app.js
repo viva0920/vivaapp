@@ -2837,6 +2837,154 @@
     saveAll(); recipeModal.classList.remove("show"); renderRecipes();
   });
 
+  /* ===== 从下厨房导入（截图 OCR）===== */
+  (function initImportXcf() {
+    const modal = $("#importXcfModal");
+    const drop = $("#xcfDrop");
+    const fileInput = $("#xcfFile");
+    const dropInner = $("#xcfDropInner");
+    const preview = $("#xcfPreview");
+    const progress = $("#xcfProgress");
+    const bar = $("#xcfBar");
+    const statusEl = $("#xcfStatus");
+    const recognizeBtn = $("#xcfRecognize");
+    const resultBox = $("#xcfResult");
+    const nameInput = $("#xcfName");
+    const ingInput = $("#xcfIng");
+    const stepsInput = $("#xcfSteps");
+    const saveBtn = $("#xcfSave");
+    const cancelBtn = $("#xcfCancel");
+    let currentImg = null;
+
+    function resetModal() {
+      fileInput.value = ""; preview.src = ""; preview.hidden = true; dropInner.hidden = false;
+      progress.hidden = true; bar.style.width = "0%"; statusEl.textContent = "识别中… 0%";
+      resultBox.hidden = true; recognizeBtn.disabled = true; saveBtn.disabled = true;
+      nameInput.value = ""; ingInput.value = ""; stepsInput.value = "";
+    }
+    function openModal() { resetModal(); modal.classList.add("show"); }
+    function closeModal() { modal.classList.remove("show"); }
+    function loadPreview(url) {
+      currentImg = url; preview.src = url; preview.hidden = false; dropInner.hidden = true;
+      recognizeBtn.disabled = false;
+    }
+
+    function pickEmoji(name) {
+      const map = [
+        [/蛋糕|戚风|海绵|芝士|cheese/i, "🍰"],
+        [/面包|吐司|欧包/i, "🍞"],
+        [/饼干|曲奇|cookie/i, "🍪"],
+        [/蛋挞|挞/i, "🥧"],
+        [/马卡龙/i, "🍬"],
+        [/泡芙/i, "🧁"],
+        [/巧克力/i, "🍫"],
+        [/咖啡/i, "☕"],
+        [/披萨|pizza/i, "🍕"],
+      ];
+      for (const [re, e] of map) if (re.test(name)) return e;
+      return "🧁";
+    }
+
+    function parseXcf(raw) {
+      const lines = (raw || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      let name = "";
+      let nameLineIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match(/(.+?)的(?:做法|菜谱|食谱)/);
+        if (m) { name = m[1].trim(); nameLineIdx = i; break; }
+      }
+      if (!name && lines.length) name = lines[0].replace(/^【?菜名】?[:：]?/, "");
+      const from = nameLineIdx >= 0 ? nameLineIdx + 1 : 0;
+      const stopRe = /^(?:步骤|做法|过程|小贴士|提示|注意|厨友|精选回答|——)(?![\d])/;
+      function sliceSection(kws) {
+        const start = lines.findIndex((l, i) => i >= from && kws.some((k) => l.includes(k)));
+        if (start < 0) return [];
+        let end = lines.length;
+        for (let i = start + 1; i < lines.length; i++) {
+          if (stopRe.test(lines[i])) { end = i; break; }
+        }
+        return lines.slice(start + 1, end)
+          .map((l) => l.replace(/^[-–·•*\d]+[.、)）]?\s*/, "").trim())
+          .filter(Boolean);
+      }
+      const ings = sliceSection(["用料", "配料", "食材", "材料", "原料"]);
+      const stepsRaw = sliceSection(["步骤", "做法", "过程", "制作", "操作"]);
+      const steps = stepsRaw
+        .map((s) => s.replace(/^(?:步骤|做法)?\s*\d+[\.、)）:]?\s*/, "").trim())
+        .filter(Boolean);
+      return {
+        name: name.slice(0, 20),
+        ingredients: ings.join("\n").slice(0, 600),
+        steps: steps.join("\n").slice(0, 1500),
+      };
+    }
+
+    let workerPromise = null;
+    function getWorker(onProgress) {
+      if (workerPromise) return workerPromise;
+      if (typeof Tesseract === "undefined") {
+        alert("OCR 引擎未能加载，请检查网络后刷新重试");
+        return Promise.reject("no-tesseract");
+      }
+      workerPromise = Tesseract.createWorker("chi_sim", 1, {
+        workerPath: "vendor/tesseract/worker.min.js",
+        corePath: "vendor/tesseract/tesseract-core.wasm.js",
+        langPath: "vendor/tesseract",
+        logger: (m) => { if (m.status === "recognizing text" && onProgress) onProgress(Math.round(m.progress * 100)); },
+      }).catch((err) => { workerPromise = null; throw err; });
+      return workerPromise;
+    }
+
+    $("#importXcfBtn").addEventListener("click", openModal);
+    cancelBtn.addEventListener("click", closeModal);
+    drop.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => loadPreview(r.result);
+      r.readAsDataURL(f);
+    });
+    modal.addEventListener("paste", (e) => {
+      const item = [...(e.clipboardData ? e.clipboardData.items : [])].find((i) => i.type.startsWith("image/"));
+      if (!item) return;
+      const r = new FileReader();
+      r.onload = () => loadPreview(r.result);
+      r.readAsDataURL(item.getAsFile());
+    });
+
+    recognizeBtn.addEventListener("click", async () => {
+      if (!currentImg) return;
+      recognizeBtn.disabled = true;
+      progress.hidden = false; bar.style.width = "0%"; statusEl.textContent = "加载识别引擎… 0%";
+      try {
+        const worker = await getWorker((p) => { bar.style.width = p + "%"; statusEl.textContent = "识别中… " + p + "%"; });
+        statusEl.textContent = "识别中… 0%";
+        const { data: { text } } = await worker.recognize(currentImg);
+        const parsed = parseXcf(text);
+        nameInput.value = parsed.name;
+        ingInput.value = parsed.ingredients;
+        stepsInput.value = parsed.steps;
+        resultBox.hidden = false;
+        saveBtn.disabled = false;
+        statusEl.textContent = "识别完成 ✓";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "识别失败：" + (err && err.message ? err.message : err);
+        recognizeBtn.disabled = false;
+      }
+    });
+
+    saveBtn.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      if (!name) { alert("请填写菜名"); return; }
+      const steps = stepsInput.value.split("\n").map((s) => s.trim()).filter(Boolean).map((t) => ({ text: t, img: null }));
+      if (state.recipes.some((r) => r.name === name) && !confirm("已存在同名食谱「" + name + "」，仍要存入吗？")) return;
+      state.recipes.push({ id: uid(), name, emoji: pickEmoji(name), time: 0, ingredients: ingInput.value.trim(), steps, note: "" });
+      saveAll(); closeModal(); renderRecipes();
+    });
+  })();
+
   /* =========================================================
      血压健康模块
      ========================================================= */
