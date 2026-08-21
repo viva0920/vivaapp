@@ -2907,7 +2907,7 @@
       };
     }
 
-    $("#importBtn").addEventListener("click", openModal);
+    $("#bakeImportBtn").addEventListener("click", openModal);
     cancelBtn.addEventListener("click", closeModal);
     textArea.addEventListener("input", () => { parseBtn.disabled = !textArea.value.trim(); });
     parseBtn.addEventListener("click", () => {
