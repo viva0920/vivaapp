@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=32" />
+  <link rel="stylesheet" href="style.css?v=33" />
 </head>
 <body>
   <div class="phone">    <!-- 右上角备份/恢复浮层（替代被隐藏的顶栏，导出/导入功能保留） -->
@@ -74,6 +74,10 @@
         <button class="nav-item" data-module="daily">
           <span class="nav-emoji">📝</span>
           <span class="nav-label">日常</span>
+        </button>
+        <button class="nav-item" data-module="baby">
+          <span class="nav-emoji">👶</span>
+          <span class="nav-label">宝宝</span>
         </button>
       </nav>
       <div class="sidebar-foot">💕 v1.0</div>
@@ -617,6 +621,75 @@
         <button id="dailyAddBtn" class="daily-fab" aria-label="写手账">✏️</button>
       </section>
 
+      <!-- ===== 宝宝成长模块 ===== -->
+      <section id="module-baby" class="module">
+        <header class="module-head">
+          <h1>🍼 宝宝成长</h1>
+          <p class="subtitle">记录每一步小小奇迹</p>
+        </header>
+
+        <div class="baby-stats">
+          <div class="bstat"><div class="bstat-v"><span id="babyAge">—</span><small>月</small></div><div class="bstat-k">月龄</div></div>
+          <div class="bstat"><div class="bstat-v"><span id="babyLastH">—</span><small>cm</small></div><div class="bstat-k">身高</div></div>
+          <div class="bstat"><div class="bstat-v"><span id="babyLastW">—</span><small>kg</small></div><div class="bstat-k">体重</div></div>
+          <div class="bstat"><div class="bstat-v"><span id="babyLastHC">—</span><small>cm</small></div><div class="bstat-k">头围</div></div>
+        </div>
+
+        <button id="babySetBirth" class="ghost-btn slim">🎂 设置宝宝生日</button>
+
+        <div class="baby-card">
+          <h2>📈 生长曲线</h2>
+          <p class="baby-sub">阴影 = WHO 参考区间（15th–85th），橙点 = 宝宝实测</p>
+          <div class="baby-toggle">
+            <button class="bt-btn active" data-metric="H">身高</button>
+            <button class="bt-btn" data-metric="W">体重</button>
+            <button class="bt-btn" data-metric="HC">头围</button>
+          </div>
+          <svg id="babyChart" viewBox="0 0 340 210" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="baby-legend">
+            <span><i style="background:#ffb06b"></i>WHO 50th</span>
+            <span><i style="background:rgba(255,126,176,.25)"></i>参考区间</span>
+            <span><i style="background:#ff7eb0"></i>宝宝实测</span>
+          </div>
+          <div id="babyChartEmpty" class="empty-hint">还没有测量记录，点下面添加吧 🍼</div>
+        </div>
+
+        <div class="baby-card">
+          <h2>📅 今日日常</h2>
+          <p class="baby-sub">一键打卡，自动汇总当天喂养 / 睡眠 / 排泄</p>
+          <div class="baby-daily-mini">
+            <div class="bdmini"><div class="bd-n"><span id="babyFeedN">0</span><small>次</small></div><div class="bd-l">🍼 喂奶</div></div>
+            <div class="bdmini"><div class="bd-n"><span id="babySleepN">0</span><small>h</small></div><div class="bd-l">😴 睡眠</div></div>
+            <div class="bdmini"><div class="bd-n"><span id="babyPooN">0</span><small>次</small></div><div class="bd-l">💩 大便</div></div>
+          </div>
+          <div class="baby-quick">
+            <button class="bqbtn" data-type="feed"><span class="e">🍼</span>喂奶</button>
+            <button class="bqbtn" data-type="sleep"><span class="e">😴</span>睡眠</button>
+            <button class="bqbtn" data-type="poo"><span class="e">💩</span>排泄</button>
+            <button class="bqbtn" data-type="mood"><span class="e">😊</span>情绪</button>
+          </div>
+          <div class="baby-timeline" id="babyTimeline"></div>
+        </div>
+
+        <div class="baby-card">
+          <h2>💉 疫苗提醒</h2>
+          <p class="baby-sub">按国家免疫规划月龄提示，到期高亮</p>
+          <div class="baby-vac" id="babyVacList"></div>
+        </div>
+
+        <div class="baby-card">
+          <h2>📖 成长日记</h2>
+          <p class="baby-sub">文字 + 照片，留住每个第一次</p>
+          <div class="baby-diary" id="babyDiaryList"></div>
+          <button id="babyDiaryBtn" class="primary-btn baby outline">✍️ 写日记</button>
+        </div>
+
+        <div class="baby-actions">
+          <button id="babyAddBtn" class="primary-btn baby">➕ 添加成长记录</button>
+          <button id="babyListBtn" class="primary-btn baby outline">📋 记录列表</button>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -914,6 +987,82 @@
     </div>
   </div>
 
-  <script src="app.js?v=31"></script>
+  <!-- 宝宝 · 设置生日 -->
+  <div id="babyBirthModal" class="modal-mask">
+    <div class="modal">
+      <h3>🎂 宝宝生日</h3>
+      <p class="modal-sub">用于自动算月龄，是生长曲线和疫苗提醒的基础</p>
+      <div class="field"><label>出生日期</label><input type="date" id="babyBirthInput" /></div>
+      <div class="modal-actions">
+        <button id="babyBirthCancel" class="ghost-btn">取消</button>
+        <button id="babyBirthSave" class="primary-btn baby">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 宝宝 · 添加/编辑成长记录 -->
+  <div id="babyAddModal" class="modal-mask">
+    <div class="modal">
+      <h3 id="babyAddTitle">🍼 添加成长记录</h3>
+      <div class="field"><label>日期</label><input type="date" id="babyAddDate" required /></div>
+      <div class="field"><label>身高 (cm)</label><input type="number" id="babyAddH" step="0.1" min="0" placeholder="如 65.0" /></div>
+      <div class="field"><label>体重 (kg)</label><input type="number" id="babyAddW" step="0.1" min="0" placeholder="如 7.5" /></div>
+      <div class="field"><label>头围 (cm)</label><input type="number" id="babyAddHC" step="0.1" min="0" placeholder="如 42.0" /></div>
+      <p class="modal-sub" style="margin-top:-2px">身高 / 体重 / 头围至少填一项即可</p>
+      <div class="modal-actions">
+        <button id="babyAddCancel" class="ghost-btn">取消</button>
+        <button id="babyAddSave" class="primary-btn baby">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 宝宝 · 记录列表 -->
+  <div id="babyListModal" class="modal-mask">
+    <div class="modal">
+      <h3>📋 成长记录列表</h3>
+      <div class="baby-list" id="babyListBody"></div>
+      <div id="babyListEmpty" class="empty-hint" style="display:none">还没有测量记录，点「➕ 添加成长记录」开始吧～</div>
+      <div class="modal-actions">
+        <button id="babyListClose" class="primary-btn baby">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 宝宝 · 写日记 -->
+  <div id="babyDiaryModal" class="modal-mask">
+    <div class="modal">
+      <h3 id="babyDiaryTitle">✍️ 写日记</h3>
+      <div class="field"><label>日期</label><input type="date" id="babyDiaryDate" /></div>
+      <div class="field"><label>今天发生了什么</label><textarea id="babyDiaryText" rows="4" placeholder="第一次笑、第一次翻身、可爱的瞬间……"></textarea></div>
+      <div class="field"><label>照片（最多 3 张）</label>
+        <label class="paper-file-btn">📷 添加照片
+          <input type="file" id="babyDiaryPhoto" accept="image/*" multiple hidden />
+        </label>
+        <div class="baby-diary-photos" id="babyDiaryPhotos"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="babyDiaryCancel" class="ghost-btn">取消</button>
+        <button id="babyDiarySave" class="primary-btn baby">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 宝宝 · 日常打卡 -->
+  <div id="babyDailyModal" class="modal-mask">
+    <div class="modal">
+      <h3 id="babyDailyTitle">📅 打卡</h3>
+      <div class="field" id="babyDailyFeedField" style="display:none"><label>奶量 (ml，可选)</label><input type="number" id="babyDailyMl" min="0" placeholder="如 180" /></div>
+      <div class="field" id="babyDailySleepField" style="display:none"><label>本次睡眠时长 (分钟)</label><input type="number" id="babyDailyMin" min="0" placeholder="如 90" /></div>
+      <div class="field" id="babyDailyPooField" style="display:none"><label>性状（可选）</label><input type="text" id="babyDailyPoo" placeholder="如 成形 / 稀" /></div>
+      <div class="field" id="babyDailyMoodField" style="display:none"><label>情绪</label><div id="babyDailyMoods" class="baby-mood-row"></div></div>
+      <div class="field"><label>备注（可选）</label><input type="text" id="babyDailyNote" maxlength="40" placeholder="可选" /></div>
+      <div class="modal-actions">
+        <button id="babyDailyCancel" class="ghost-btn">取消</button>
+        <button id="babyDailySave" class="primary-btn baby">记录</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=32"></script>
 </body>
 </html>
