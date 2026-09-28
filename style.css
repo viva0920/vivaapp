@@ -1378,3 +1378,82 @@ body {
 .modal-sub { font-size: 13px; color: #a08a98; margin: -2px 0 12px; line-height: 1.5; }
 .xcf-result { margin-top: 6px; animation: fade .2s; }
 .xcf-note { font-size: 12px; color: #e5894d; background: #fff3e9; border-radius: 10px; padding: 8px 10px; margin: 4px 0 0; }
+
+/* ===== 宝宝成长模块 ===== */
+.baby-stats { display: flex; gap: 8px; margin-bottom: 12px; }
+.bstat { flex: 1; background: #fff; border-radius: 16px; padding: 10px 4px; text-align: center; box-shadow: 0 4px 12px rgba(255,126,176,.12); }
+.bstat-v { font-size: 19px; font-weight: 800; color: #ff7eb0; font-family: 'ZCOOL KuaiLe', sans-serif; }
+.bstat-v small { font-size: 10px; color: #a08a98; font-weight: 600; margin-left: 1px; }
+.bstat-k { font-size: 11px; color: #a08a98; margin-top: 2px; }
+
+.baby-card { background: #fff; border-radius: 18px; padding: 14px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(255,126,176,.10); }
+.baby-card h2 { font-size: 15px; margin: 0 0 2px; display: flex; align-items: center; gap: 6px; color: #ff7eb0; }
+.baby-sub { font-size: 11px; color: #b0a0a8; margin: 0 0 8px; }
+
+.baby-toggle { display: flex; gap: 6px; margin: 6px 0 6px; }
+.baby-toggle .bt-btn { flex: 1; padding: 7px 0; border-radius: 12px; border: 1.5px solid #ffd9ea; background: #fff; color: #ff7eb0; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+.baby-toggle .bt-btn.active { background: linear-gradient(135deg,#ff9ec6,#ff7eb0); color: #fff; border-color: #ffd9ea; }
+
+.baby-legend { display: flex; gap: 12px; font-size: 11px; color: #a08a98; margin: 6px 0 0; flex-wrap: wrap; }
+.baby-legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+#babyChart { width: 100%; height: auto; display: block; }
+
+.baby-daily-mini { display: flex; gap: 8px; margin-bottom: 10px; }
+.bdmini { flex: 1; background: #fff6fa; border-radius: 12px; padding: 8px 4px; text-align: center; }
+.bd-n { font-size: 16px; font-weight: 800; color: #ff7eb0; }
+.bd-n small { font-size: 10px; color: #a08a98; font-weight: 600; }
+.bd-l { font-size: 10px; color: #a08a98; margin-top: 1px; }
+
+.baby-quick { display: flex; gap: 8px; margin-bottom: 10px; }
+.bqbtn { flex: 1; background: #fff; border: 1.5px solid #ffe1ec; border-radius: 14px; padding: 9px 0; font-size: 12px; font-weight: 700; color: #ff7eb0; text-align: center; cursor: pointer; font-family: inherit; }
+.bqbtn .e { display: block; font-size: 18px; margin-bottom: 2px; }
+
+.baby-timeline { display: flex; flex-direction: column; }
+.baby-tl { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px dashed #f3eef1; align-items: flex-start; }
+.baby-tl:last-child { border-bottom: none; }
+.baby-tl-ico { width: 30px; height: 30px; border-radius: 50%; background: #fff0f6; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.baby-tl-body { flex: 1; }
+.baby-tl-t { font-size: 12px; color: #a08a98; }
+.baby-tl-c { font-size: 13px; color: #5a5160; }
+.baby-tl-del { background: none; border: none; color: #d9c7cf; font-size: 13px; cursor: pointer; padding: 2px 4px; flex-shrink: 0; }
+
+.baby-vac { display: flex; flex-direction: column; }
+.baby-vac-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f5f0f2; cursor: pointer; }
+.baby-vac-item:last-child { border-bottom: none; }
+.baby-vac-status { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.vac-done { background: #d8f5e8; color: #1D9E75; }
+.vac-due { background: #fff0d6; color: #e09b1a; }
+.vac-wait { background: #f3eef1; color: #bbb; }
+.baby-vac-body { flex: 1; }
+.baby-vac-name { font-size: 13px; font-weight: 700; color: #5a5160; }
+.vac-due-name { color: #e09b1a; }
+.baby-vac-m { font-size: 11px; color: #a08a98; margin-top: 1px; }
+
+.baby-diary { display: flex; flex-direction: column; }
+.baby-diary-item { position: relative; background: #fff8fb; border-radius: 14px; padding: 11px; margin-bottom: 10px; border: 1px solid #ffe9f1; }
+.baby-diary-dt { font-size: 11px; color: #a08a98; margin-bottom: 4px; }
+.baby-diary-txt { font-size: 13px; color: #5a5160; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.baby-diary-photos { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.baby-diary-ph { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; }
+.baby-diary-del { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.85); border: none; color: #c98aa6; font-size: 13px; cursor: pointer; border-radius: 8px; padding: 2px 6px; }
+
+.baby-actions { display: flex; gap: 10px; margin-bottom: 10px; }
+.baby-actions .primary-btn { flex: 1; margin-top: 0; }
+.primary-btn.baby { background: linear-gradient(135deg,#ff9ec6,#ff7eb0); box-shadow: 0 6px 14px rgba(255,126,176,.35); }
+
+.baby-list { display: flex; flex-direction: column; }
+.baby-list-item { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #f5f0f2; }
+.baby-list-item:last-child { border-bottom: none; }
+.baby-list-main { flex: 1; }
+.baby-list-date { font-size: 13px; font-weight: 700; color: #5a5160; }
+.baby-list-line { font-size: 13px; color: #5a5160; margin-top: 2px; }
+.baby-list-line b { color: #ff7eb0; }
+.baby-list-acts { display: flex; gap: 6px; flex-shrink: 0; }
+.baby-list-edit, .baby-list-del { font-size: 12px; border: 1px solid #eee; border-radius: 10px; padding: 5px 9px; background: #fff; cursor: pointer; color: #a08a98; }
+
+.baby-mood-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.baby-mood-opt { padding: 7px 10px; border-radius: 12px; border: 1.5px solid #ffe1ec; background: #fff; color: #ff7eb0; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.baby-mood-opt.active { background: linear-gradient(135deg,#ff9ec6,#ff7eb0); color: #fff; border-color: #ffd9ea; }
+
+.baby-diary-ph-wrap { position: relative; }
+.baby-diary-ph-wrap .baby-diary-ph-del { position: absolute; top: -6px; right: -6px; background: rgba(0,0,0,.5); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; line-height: 1; cursor: pointer; }
