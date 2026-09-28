@@ -118,6 +118,7 @@
     exLibrary: store.get("wb_exlib", []),
     daily: store.get("wb_daily", null),
     renqing: store.get("wb_renqing", []),
+    baby: store.get("wb_baby", null),
     currentMonth: monthStr(),
     chartType: "expense",
     recType: "expense",
@@ -142,6 +143,7 @@
     store.set("wb_exlib", state.exLibrary);
     store.set("wb_daily", state.daily);
     store.set("wb_renqing", state.renqing);
+    store.set("wb_baby", state.baby);
     scheduleCloudBackup();
   };
 
@@ -4239,4 +4241,442 @@
   });
   $("#cloudNow").addEventListener("click", () => doCloudBackup());
   $("#cloudRestore").addEventListener("click", () => { cloudModal.classList.remove("show"); restoreFromCloud(); });
+
+  /* =========================================================
+     宝宝成长模块
+     ========================================================= */
+  function ensureBaby() {
+    if (!state.baby || typeof state.baby !== "object") state.baby = {};
+    const b = state.baby;
+    if (typeof b.birth !== "string") b.birth = "";
+    if (!Array.isArray(b.records)) b.records = [];
+    if (!Array.isArray(b.daily)) b.daily = [];
+    if (!b.vaccines || typeof b.vaccines !== "object") b.vaccines = {};
+    if (!Array.isArray(b.diary)) b.diary = [];
+    if (typeof b.metric !== "string") b.metric = "H";
+  }
+
+  function bset(sel, v) { const el = $(sel); if (el) el.textContent = v; }
+
+  const BABY_WHO = {
+    H:  { yMin:45, yMax:82, unit:"cm",
+          p15:[46.1,50.2,53.8,57.5,60.4,62.7,63.3,64.8,66.2,67.7,69.1,70.2,71.3],
+          p50:[49.9,53.9,57.4,61.4,64.0,66.2,67.6,69.2,70.6,72.0,73.3,74.5,75.7],
+          p85:[53.7,57.6,61.1,65.3,68.0,70.2,72.0,73.7,75.2,76.5,77.9,79.1,80.3] },
+    W:  { yMin:2, yMax:12, unit:"kg",
+          p15:[2.9,3.7,4.5,5.4,6.0,6.5,6.8,7.2,7.5,7.7,8.0,8.1,8.2],
+          p50:[3.3,4.3,5.2,6.4,7.0,7.5,7.9,8.3,8.6,9.0,9.3,9.4,9.6],
+          p85:[3.9,5.2,6.3,7.5,8.3,8.9,9.1,9.7,10.0,10.4,10.7,10.9,11.0] },
+    HC: { yMin:30, yMax:49, unit:"cm",
+          p15:[32.3,34.0,35.4,36.6,37.7,38.7,39.6,40.4,41.1,41.8,42.4,43.0,43.5],
+          p50:[34.5,36.1,37.3,38.4,39.4,40.3,41.1,41.9,42.6,43.2,43.8,44.3,44.8],
+          p85:[36.8,38.2,39.4,40.4,41.3,42.2,43.0,43.7,44.4,45.0,45.5,46.0,46.5] },
+  };
+  const BABY_MONTHS = [0,1,2,3,4,5,6,7,8,9,10,11,12];
+
+  const BABY_VACCINES = [
+    { name:"乙肝① + 卡介苗", month:0 },
+    { name:"乙肝②", month:1 },
+    { name:"脊灰①", month:2 },
+    { name:"脊灰② + 百白破①", month:3 },
+    { name:"脊灰③ + 百白破② + 流感①", month:4 },
+    { name:"百白破③ + 流感②", month:5 },
+    { name:"乙肝③ + A群流脑①", month:6 },
+    { name:"麻腮风① + 乙脑①", month:8 },
+    { name:"A群流脑②", month:9 },
+    { name:"麻腮风② + 甲肝", month:18 },
+    { name:"百白破④ + 白破 + 乙脑②", month:24 },
+    { name:"A+C群流脑①", month:36 },
+  ];
+
+  function babyAgeMonths() {
+    ensureBaby();
+    if (!state.baby.birth) return null;
+    const b = new Date(state.baby.birth + "T00:00:00");
+    if (isNaN(b.getTime())) return null;
+    const days = (Date.now() - b.getTime()) / 86400000;
+    return days / 30.4375;
+  }
+
+  function babyMetricVal(rec, metric) {
+    if (metric === "H") return rec.height;
+    if (metric === "W") return rec.weight;
+    return rec.head;
+  }
+
+  function drawBabyChart() {
+    ensureBaby();
+    const svg = $("#babyChart");
+    if (!svg) return;
+    const metric = state.baby.metric || "H";
+    const cfg = BABY_WHO[metric];
+    const recs = state.baby.records
+      .map((r) => {
+        const v = babyMetricVal(r, metric);
+        if (typeof v !== "number" || isNaN(v)) return null;
+        if (!state.baby.birth || !r.date) return null;
+        const d = new Date(r.date + "T00:00:00");
+        const bb = new Date(state.baby.birth + "T00:00:00");
+        if (isNaN(d.getTime()) || isNaN(bb.getTime())) return null;
+        return { age: (d.getTime() - bb.getTime()) / 86400000 / 30.4375, v };
+      })
+      .filter(Boolean)
+      .sort((a, z) => a.age - z.age);
+
+    const X0=40, X1=326, Y0=178, Y1=24, MMAX=12;
+    const xs = (m) => X0 + Math.min(Math.max(m, 0), MMAX) / MMAX * (X1 - X0);
+    const ys = (v) => Y1 + ((cfg.yMax - v) / (cfg.yMax - cfg.yMin)) * (Y0 - Y1);
+    let s = "";
+    for (let m = 0; m <= MMAX; m += 3) {
+      const x = xs(m);
+      s += `<line x1="${x}" y1="${Y1}" x2="${x}" y2="${Y0}" stroke="#f3e9ee" stroke-width="1"/>`;
+      s += `<text x="${x}" y="${Y0 + 14}" font-size="10" fill="#b0a0a8" text-anchor="middle">${m}</text>`;
+    }
+    let top = "", bot = "";
+    BABY_MONTHS.forEach((m, i) => { top += `${xs(m)},${ys(cfg.p85[i])} `; });
+    for (let i = BABY_MONTHS.length - 1; i >= 0; i--) { bot += `${xs(BABY_MONTHS[i])},${ys(cfg.p15[i])} `; }
+    s += `<polygon points="${top}${bot}" fill="rgba(255,126,176,.12)"/>`;
+    let p15 = "", p50 = "", p85b = "";
+    BABY_MONTHS.forEach((m, i) => {
+      p15 += `${xs(m)},${ys(cfg.p15[i])} `;
+      p50 += `${xs(m)},${ys(cfg.p50[i])} `;
+      p85b += `${xs(m)},${ys(cfg.p85[i])} `;
+    });
+    s += `<polyline points="${p15}" fill="none" stroke="rgba(255,126,176,.5)" stroke-width="1"/>`;
+    s += `<polyline points="${p85b}" fill="none" stroke="rgba(255,126,176,.5)" stroke-width="1"/>`;
+    s += `<polyline points="${p50}" fill="none" stroke="#ffb06b" stroke-width="2" stroke-dasharray="5 4"/>`;
+    if (recs.length) {
+      let pb = "";
+      recs.forEach((p) => { pb += `${xs(p.age)},${ys(p.v)} `; });
+      s += `<polyline points="${pb}" fill="none" stroke="#ff7eb0" stroke-width="2.5"/>`;
+      recs.forEach((p) => { s += `<circle cx="${xs(p.age)}" cy="${ys(p.v)}" r="3.2" fill="#ff7eb0" stroke="#fff" stroke-width="1.2"/>`; });
+    }
+    s += `<text x="${X0 - 6}" y="${Y1 + 4}" font-size="10" fill="#b0a0a8" text-anchor="end">${cfg.yMax}${cfg.unit}</text>`;
+    s += `<text x="${X0 - 6}" y="${Y0}" font-size="10" fill="#b0a0a8" text-anchor="end">${cfg.yMin}${cfg.unit}</text>`;
+    s += `<text x="${(X0 + X1) / 2}" y="${Y0 + 30}" font-size="10" fill="#b0a0a8" text-anchor="middle">月龄（月）</text>`;
+    svg.innerHTML = s;
+    const empty = $("#babyChartEmpty");
+    if (empty) empty.style.display = recs.length ? "none" : "block";
+  }
+
+  function renderBabyOverview() {
+    ensureBaby();
+    const age = babyAgeMonths();
+    bset("#babyAge", (age === null || isNaN(age) || age < 0) ? "—" : (age >= 24 ? Math.round(age) : age.toFixed(1)));
+    const valid = state.baby.records.filter((r) => r.height || r.weight || r.head);
+    const last = valid.slice().sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+    bset("#babyLastH", last && last.height ? last.height : "—");
+    bset("#babyLastW", last && last.weight ? last.weight : "—");
+    bset("#babyLastHC", last && last.head ? last.head : "—");
+    bset("#babyBirthText", state.baby.birth ? "（" + state.baby.birth + "）" : "");
+  }
+
+  function renderBabyDaily() {
+    ensureBaby();
+    const today = todayStr();
+    const list = state.baby.daily.filter((d) => d.date === today);
+    const feedN = list.filter((d) => d.type === "feed").length;
+    const pooN = list.filter((d) => d.type === "poo").length;
+    const sleepMin = list.filter((d) => d.type === "sleep").reduce((sm, d) => sm + (Number(d.min) || 0), 0);
+    const feedEl = $("#babyFeedN"), pooEl = $("#babyPooN"), sleepEl = $("#babySleepN");
+    if (feedEl) feedEl.textContent = feedN;
+    if (pooEl) pooEl.textContent = pooN;
+    if (sleepEl) sleepEl.textContent = (sleepMin / 60).toFixed(1);
+    const tl = list.slice().sort((a, b) => (b.time || "").localeCompare(a.time || "")).map((d) => {
+      const icon = { feed:"🍼", sleep:"😴", poo:"💩", mood:"😊" }[d.type] || "•";
+      let c = "";
+      if (d.type === "feed") c = d.ml ? "喂奶 " + d.ml + " ml" : "喂奶";
+      else if (d.type === "sleep") c = "睡眠 " + (d.min || 0) + " 分钟";
+      else if (d.type === "poo") c = d.poo ? "大便（" + d.poo + "）" : "大便";
+      else if (d.type === "mood") c = (d.mood || "心情") + (d.note ? " · " + d.note : "");
+      else c = d.note || "";
+      const t = (d.time || "").slice(11, 16) || "";
+      return `<div class="baby-tl"><div class="baby-tl-ico">${icon}</div><div class="baby-tl-body"><div class="baby-tl-t">${t}</div><div class="baby-tl-c">${escapeHtml(c)}</div></div><button class="baby-tl-del" data-id="${d.id}" aria-label="删除">✕</button></div>`;
+    }).join("");
+    const box = $("#babyTimeline");
+    if (box) box.innerHTML = tl || '<p class="empty-hint">今天还没打卡哦～点上面按钮记录一下 🍼</p>';
+  }
+
+  function renderBabyVaccines() {
+    ensureBaby();
+    const age = babyAgeMonths();
+    const html = BABY_VACCINES.map((v) => {
+      const done = state.baby.vaccines[v.name];
+      let statusCls, ico, mtxt, nameCls = "";
+      if (done) { statusCls = "vac-done"; ico = "✓"; mtxt = "已接种 · " + done; }
+      else if (age !== null && !isNaN(age) && age >= v.month) { statusCls = "vac-due"; ico = "!"; nameCls = "vac-due-name"; mtxt = v.month + " 月龄 · 该打啦"; }
+      else { statusCls = "vac-wait"; ico = "·"; mtxt = v.month + " 月龄 · 未到"; }
+      return `<div class="baby-vac-item ${statusCls}" data-name="${escapeHtml(v.name)}"><div class="baby-vac-status ${statusCls}">${ico}</div><div class="baby-vac-body"><div class="baby-vac-name ${nameCls}">${escapeHtml(v.name)}</div><div class="baby-vac-m">${mtxt}</div></div></div>`;
+    }).join("");
+    const box = $("#babyVacList");
+    if (box) box.innerHTML = html;
+  }
+
+  function renderBabyDiary() {
+    ensureBaby();
+    const list = state.baby.diary.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    const box = $("#babyDiaryList");
+    if (!box) return;
+    if (!list.length) { box.innerHTML = '<p class="empty-hint">还没有日记，点「✍️ 写日记」记录宝宝的小瞬间吧 📖</p>'; return; }
+    box.innerHTML = list.map((d) => {
+      const photos = (d.photos || []).map((p) => `<img class="baby-diary-ph" src="${p}" alt="日记照片" />`).join("");
+      return `<div class="baby-diary-item" data-id="${d.id}"><button class="baby-diary-del" data-id="${d.id}" aria-label="删除">🗑️</button><div class="baby-diary-dt">${escapeHtml(d.date)}</div><div class="baby-diary-txt">${escapeHtml(d.text)}</div>${photos ? `<div class="baby-diary-photos">${photos}</div>` : ""}</div>`;
+    }).join("");
+  }
+
+  function renderBabyList() {
+    ensureBaby();
+    const list = state.baby.records.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    const body = $("#babyListBody"), empty = $("#babyListEmpty");
+    if (!list.length) {
+      if (body) body.innerHTML = "";
+      if (empty) empty.style.display = "block";
+      return;
+    }
+    if (empty) empty.style.display = "none";
+    if (body) body.innerHTML = list.map((r) => {
+      const parts = [];
+      if (r.height) parts.push("身高 " + r.height + "cm");
+      if (r.weight) parts.push("体重 " + r.weight + "kg");
+      if (r.head) parts.push("头围 " + r.head + "cm");
+      return `<div class="baby-list-item"><div class="baby-list-main"><div class="baby-list-date">${escapeHtml(r.date)}</div><div class="baby-list-line">${parts.map((p) => `<b>${escapeHtml(p)}</b>`).join(" · ")}</div></div><div class="baby-list-acts"><button class="baby-list-edit" data-id="${r.id}">编辑</button><button class="baby-list-del" data-id="${r.id}">删除</button></div></div>`;
+    }).join("");
+  }
+
+  function renderBaby() {
+    ensureBaby();
+    renderBabyOverview();
+    drawBabyChart();
+    renderBabyDaily();
+    renderBabyVaccines();
+    renderBabyDiary();
+    $$("#module-baby .bt-btn").forEach((b) => b.classList.toggle("active", b.dataset.metric === (state.baby.metric || "H")));
+  }
+
+  function babyCompressImage(file, maxW, cb) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        try { cb(canvas.toDataURL("image/jpeg", 0.72)); } catch (e) { cb(null); }
+      };
+      img.onerror = () => cb(null);
+      img.src = reader.result;
+    };
+    reader.onerror = () => cb(null);
+    reader.readAsDataURL(file);
+  }
+
+  (function initBaby() {
+    ensureBaby();
+
+    $$("#module-baby .bt-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.baby.metric = btn.dataset.metric;
+        saveAll();
+        $$("#module-baby .bt-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        drawBabyChart();
+      });
+    });
+
+    $("#babySetBirth").addEventListener("click", () => {
+      $("#babyBirthInput").value = state.baby.birth || "";
+      $("#babyBirthModal").classList.add("show");
+    });
+    $("#babyBirthCancel").addEventListener("click", () => $("#babyBirthModal").classList.remove("show"));
+    $("#babyBirthModal").addEventListener("click", (e) => { if (e.target === $("#babyBirthModal")) $("#babyBirthModal").classList.remove("show"); });
+    $("#babyBirthSave").addEventListener("click", () => {
+      state.baby.birth = $("#babyBirthInput").value || "";
+      saveAll();
+      $("#babyBirthModal").classList.remove("show");
+      renderBaby();
+    });
+
+    let editingRecId = null;
+    $("#babyAddBtn").addEventListener("click", () => {
+      editingRecId = null;
+      $("#babyAddTitle").textContent = "🍼 添加成长记录";
+      $("#babyAddDate").value = todayStr();
+      $("#babyAddH").value = "";
+      $("#babyAddW").value = "";
+      $("#babyAddHC").value = "";
+      $("#babyAddModal").classList.add("show");
+    });
+    $("#babyAddCancel").addEventListener("click", () => $("#babyAddModal").classList.remove("show"));
+    $("#babyAddModal").addEventListener("click", (e) => { if (e.target === $("#babyAddModal")) $("#babyAddModal").classList.remove("show"); });
+    $("#babyAddSave").addEventListener("click", () => {
+      const h = parseFloat($("#babyAddH").value);
+      const w = parseFloat($("#babyAddW").value);
+      const hc = parseFloat($("#babyAddHC").value);
+      const date = $("#babyAddDate").value || todayStr();
+      if (isNaN(h) && isNaN(w) && isNaN(hc)) { alert("至少填写身高 / 体重 / 头围中的一项"); return; }
+      const rec = {
+        id: editingRecId || uid(),
+        date,
+        height: isNaN(h) ? null : h,
+        weight: isNaN(w) ? null : w,
+        head: isNaN(hc) ? null : hc,
+      };
+      if (editingRecId) {
+        const idx = state.baby.records.findIndex((r) => r.id === editingRecId);
+        if (idx >= 0) state.baby.records[idx] = rec;
+      } else {
+        state.baby.records.push(rec);
+      }
+      saveAll();
+      $("#babyAddModal").classList.remove("show");
+      renderBaby();
+    });
+
+    $("#babyListBtn").addEventListener("click", () => { renderBabyList(); $("#babyListModal").classList.add("show"); });
+    $("#babyListClose").addEventListener("click", () => $("#babyListModal").classList.remove("show"));
+    $("#babyListModal").addEventListener("click", (e) => { if (e.target === $("#babyListModal")) $("#babyListModal").classList.remove("show"); });
+    $("#babyListBody").addEventListener("click", (e) => {
+      const editBtn = e.target.closest(".baby-list-edit");
+      const delBtn = e.target.closest(".baby-list-del");
+      if (editBtn) {
+        const r = state.baby.records.find((x) => x.id === editBtn.dataset.id);
+        if (!r) return;
+        editingRecId = r.id;
+        $("#babyAddTitle").textContent = "✏️ 编辑成长记录";
+        $("#babyAddDate").value = r.date || todayStr();
+        $("#babyAddH").value = r.height || "";
+        $("#babyAddW").value = r.weight || "";
+        $("#babyAddHC").value = r.head || "";
+        $("#babyListModal").classList.remove("show");
+        $("#babyAddModal").classList.add("show");
+      } else if (delBtn) {
+        if (confirm("确定删除这条记录吗？")) {
+          state.baby.records = state.baby.records.filter((x) => x.id !== delBtn.dataset.id);
+          saveAll();
+          renderBabyList();
+          renderBaby();
+        }
+      }
+    });
+
+    let diaryDraftPhotos = [];
+    function renderDiaryDraftPhotos() {
+      const box = $("#babyDiaryPhotos");
+      if (!box) return;
+      box.innerHTML = diaryDraftPhotos.map((p, i) => `<div class="baby-diary-ph-wrap"><img class="baby-diary-ph" src="${p}" alt="预览" /><button class="baby-diary-ph-del" data-i="${i}">✕</button></div>`).join("");
+    }
+    $("#babyDiaryBtn").addEventListener("click", () => {
+      $("#babyDiaryTitle").textContent = "✍️ 写日记";
+      $("#babyDiaryDate").value = todayStr();
+      $("#babyDiaryText").value = "";
+      diaryDraftPhotos = [];
+      renderDiaryDraftPhotos();
+      $("#babyDiaryModal").classList.add("show");
+    });
+    $("#babyDiaryCancel").addEventListener("click", () => $("#babyDiaryModal").classList.remove("show"));
+    $("#babyDiaryModal").addEventListener("click", (e) => { if (e.target === $("#babyDiaryModal")) $("#babyDiaryModal").classList.remove("show"); });
+    $("#babyDiaryPhoto").addEventListener("change", (e) => {
+      const files = [...(e.target.files || [])];
+      let pending = files.length;
+      if (!pending) return;
+      files.forEach((f) => {
+        babyCompressImage(f, 720, (dataUrl) => {
+          if (dataUrl && diaryDraftPhotos.length < 3) diaryDraftPhotos.push(dataUrl);
+          if (--pending === 0) { renderDiaryDraftPhotos(); $("#babyDiaryPhoto").value = ""; }
+        });
+      });
+    });
+    $("#babyDiaryPhotos").addEventListener("click", (e) => {
+      const del = e.target.closest(".baby-diary-ph-del");
+      if (del) { diaryDraftPhotos.splice(Number(del.dataset.i), 1); renderDiaryDraftPhotos(); }
+    });
+    $("#babyDiarySave").addEventListener("click", () => {
+      const date = $("#babyDiaryDate").value || todayStr();
+      const text = $("#babyDiaryText").value.trim();
+      if (!text && diaryDraftPhotos.length === 0) { alert("写点什么或加张照片吧～"); return; }
+      state.baby.diary.push({ id: uid(), date, text, photos: diaryDraftPhotos.slice() });
+      saveAll();
+      $("#babyDiaryModal").classList.remove("show");
+      renderBaby();
+    });
+
+    $("#babyDiaryList").addEventListener("click", (e) => {
+      const del = e.target.closest(".baby-diary-del");
+      if (del && confirm("删除这篇日记？")) {
+        state.baby.diary = state.baby.diary.filter((x) => x.id !== del.dataset.id);
+        saveAll();
+        renderBaby();
+      }
+    });
+
+    const MOODS = ["😊 开心", "😌 安静", "😣 哭闹", "😟 烦躁"];
+    let dailyType = "feed";
+    $$("#module-baby .bqbtn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        dailyType = btn.dataset.type;
+        const titles = { feed:"🍼 喂奶打卡", sleep:"😴 睡眠打卡", poo:"💩 排泄打卡", mood:"😊 情绪打卡" };
+        $("#babyDailyTitle").textContent = titles[dailyType] || "打卡";
+        $("#babyDailyFeedField").style.display = dailyType === "feed" ? "block" : "none";
+        $("#babyDailySleepField").style.display = dailyType === "sleep" ? "block" : "none";
+        $("#babyDailyPooField").style.display = dailyType === "poo" ? "block" : "none";
+        $("#babyDailyMoodField").style.display = dailyType === "mood" ? "block" : "none";
+        $("#babyDailyMl").value = "";
+        $("#babyDailyMin").value = "";
+        $("#babyDailyPoo").value = "";
+        $("#babyDailyNote").value = "";
+        if (dailyType === "mood") {
+          $("#babyDailyMoods").innerHTML = MOODS.map((m, i) => `<button type="button" class="baby-mood-opt${i === 0 ? " active" : ""}" data-mood="${m}">${m}</button>`).join("");
+          $$("#babyDailyMoods .baby-mood-opt").forEach((o) => o.addEventListener("click", () => {
+            $$("#babyDailyMoods .baby-mood-opt").forEach((x) => x.classList.toggle("active", x === o));
+          }));
+        }
+        $("#babyDailyModal").classList.add("show");
+      });
+    });
+    $("#babyDailyCancel").addEventListener("click", () => $("#babyDailyModal").classList.remove("show"));
+    $("#babyDailyModal").addEventListener("click", (e) => { if (e.target === $("#babyDailyModal")) $("#babyDailyModal").classList.remove("show"); });
+    $("#babyDailySave").addEventListener("click", () => {
+      const now = new Date();
+      const time = now.getFullYear() + "-" + pad2(now.getMonth() + 1) + "-" + pad2(now.getDate()) + " " + pad2(now.getHours()) + ":" + pad2(now.getMinutes());
+      const note = $("#babyDailyNote").value.trim();
+      const rec = { id: uid(), date: todayStr(), time, type: dailyType, note };
+      if (dailyType === "feed") rec.ml = parseFloat($("#babyDailyMl").value) || null;
+      if (dailyType === "sleep") {
+        const min = parseFloat($("#babyDailyMin").value);
+        if (isNaN(min) || min <= 0) { alert("请填写本次睡眠时长（分钟）"); return; }
+        rec.min = min;
+      }
+      if (dailyType === "poo") rec.poo = $("#babyDailyPoo").value.trim();
+      if (dailyType === "mood") {
+        const active = $("#babyDailyMoods .baby-mood-opt.active");
+        rec.mood = active ? active.dataset.mood : MOODS[0];
+      }
+      state.baby.daily.push(rec);
+      saveAll();
+      $("#babyDailyModal").classList.remove("show");
+      renderBaby();
+    });
+
+    $("#babyTimeline").addEventListener("click", (e) => {
+      const del = e.target.closest(".baby-tl-del");
+      if (del) {
+        state.baby.daily = state.baby.daily.filter((x) => x.id !== del.dataset.id);
+        saveAll();
+        renderBabyDaily();
+      }
+    });
+
+    $("#babyVacList").addEventListener("click", (e) => {
+      const item = e.target.closest(".baby-vac-item");
+      if (!item) return;
+      const name = item.dataset.name;
+      if (state.baby.vaccines[name]) delete state.baby.vaccines[name];
+      else state.baby.vaccines[name] = todayStr();
+      saveAll();
+      renderBabyVaccines();
+    });
+
+    renderBaby();
+  })();
 })();
