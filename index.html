@@ -993,6 +993,12 @@
       <h3>🎂 宝宝生日</h3>
       <p class="modal-sub">用于自动算月龄，是生长曲线和疫苗提醒的基础</p>
       <div class="field"><label>出生日期</label><input type="date" id="babyBirthInput" /></div>
+      <div class="field"><label>性别</label>
+        <select id="babySexInput">
+          <option value="boy">👦 男宝</option>
+          <option value="girl">👧 女宝</option>
+        </select>
+      </div>
       <div class="modal-actions">
         <button id="babyBirthCancel" class="ghost-btn">取消</button>
         <button id="babyBirthSave" class="primary-btn baby">保存</button>
@@ -1063,6 +1069,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
 </body>
 </html>
